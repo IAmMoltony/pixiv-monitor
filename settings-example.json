@@ -1,7 +1,6 @@
 {
     "access_token": "YOUR ACCESS TOKEN HERE",
     "refresh_token": "YOUR REFRESH TOKEN HERE",
-    "refresh_interval": 1800,
     "artist_ids": [
         123,
         321,
