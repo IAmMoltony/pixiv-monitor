@@ -8,6 +8,9 @@ import os
 import requests
 import datetime
 import logging
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 class PixivUser:
     def __init__(self, iden, name, account):
@@ -115,6 +118,34 @@ def save_config(config):
     with open("./settings.json", "w", encoding="utf-8") as config_json:
         config_json.write(json.dumps(config, indent=4))
 
+def send_email(subject, message_text, config):
+    if config["email"]:
+        smtp_config = config["smtp"]
+
+        login = smtp_config["credentials"]["login"]
+        password = smtp_config["credentials"]["password"]
+        mail_host = smtp_config["mail_host"]["address"]
+        mail_port = smtp_config["mail_host"]["port"]
+
+        sender = smtp_config["from_address"]
+        receiver = smtp_config["to_address"]
+
+        message = MIMEMultipart()
+        message["From"] = sender
+        message["To"] = receiver
+        message["Subject"] = f"{smtp_config['subject']} - {subject}"
+        message.attach(MIMEText(message_text, "plain"))
+
+        try:
+            smtp = smtplib.SMTP(mail_host, mail_port)
+            smtp.starttls()
+            smtp.login(login, password)
+            smtp.sendmail(sender, receiver, message.as_string())
+        except Exception as exc:
+            logging.getLogger().error(f"Error sending e-mail: {exc}")
+        finally:
+            smtp.quit()
+
 USER_AGENT = "PixivAndroidApp/5.0.234 (Android 11; Pixel 5)"
 AUTH_TOKEN_URL = "https://oauth.secure.pixiv.net/auth/token"
 CLIENT_ID = "MOBrBDS8blbauoSck0ZfDbtuzpyT"
@@ -161,7 +192,9 @@ def check_illustrations(check_interval, config, api, seen):
                 if not seen.query_illust(illust.iden):
                     seen.add_illust(illust.iden)
                     print(f"[{hrdatetime()}] \033[0;32mFound new illustration:\033[0m\n{str(illust)}\n")
-                    logging.getLogger().info(f"New illustration: pixiv #{illust.iden} '{illust.title}' by {illust.user.name} (@{illust.user.account}). Tags: {illust.get_tag_string(False)}")
+                    log_message = f"New illustration: pixiv #{illust.iden} '{illust.title}' by {illust.user.name} (@{illust.user.account}). Tags: {illust.get_tag_string(False)}"
+                    logging.getLogger().info(log_message)
+                    send_email(f"{illust.title} by {illust.user.name}", log_message, config)
             seen.flush()
         time.sleep(check_interval)
 

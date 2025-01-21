@@ -7,5 +7,22 @@
         321,
         1234
     ],
-    "check_interval": 30
+    "check_interval": 30,
+    "email": false,
+    "smtp": {
+        "mail_host": {
+            "address": "example.com",
+            "port": 587
+        },
+        "from_address": "fromaddr@example.com",
+        "to_addresses": [
+            "toaddr@example.com",
+            "toaddr2@example.com"
+        ],
+        "subject": "New Illustration",
+        "credentials": {
+            "login": "fromaddr@example.com",
+            "password": "1234"
+        }
+    }
 }
