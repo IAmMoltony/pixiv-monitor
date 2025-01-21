@@ -119,7 +119,7 @@ def save_config(config):
         config_json.write(json.dumps(config, indent=4))
 
 def send_email(subject, message_text, config):
-    if config["email"]:
+    if "email" in config and config["email"]:
         smtp_config = config["smtp"]
 
         login = smtp_config["credentials"]["login"]
