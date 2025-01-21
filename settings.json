@@ -1,0 +1,23 @@
+{
+    "access_token": "4uujn-X-0xCGgJMxAxb6QCFa7p165iuMn8CzbEnZh_Q",
+    "refresh_token": "L4j4NH0S8Id1Usd4Y_X_2PshJd8u9wONjqDLVWMX5oM",
+    "refresh_interval": 1800,
+    "artist_ids": [
+        49675420,
+        1946476,
+        81248719,
+        36871682,
+        74181584,
+        860984,
+        27579691,
+        62712822,
+        28946661,
+        29921671,
+        13584953,
+        9424970,
+        105408893,
+        656812,
+        68480688
+    ],
+    "check_interval": 30
+}
