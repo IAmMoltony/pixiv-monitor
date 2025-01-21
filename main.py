@@ -96,7 +96,7 @@ def init_logging():
     logger = logging.getLogger()
 
     logger.setLevel(logging.DEBUG)
-    file_handler = logging.FileHandler("pixiv-monitor.log")
+    file_handler = logging.FileHandler("pixiv-monitor.log", encoding="utf-8")
     file_handler.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter("[%(asctime)s]:%(levelname)s %(message)s")
