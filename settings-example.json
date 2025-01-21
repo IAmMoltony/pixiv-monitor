@@ -18,7 +18,6 @@
             "toaddr@example.com",
             "toaddr2@example.com"
         ],
-        "subject": "New Illustration",
         "credentials": {
             "login": "fromaddr@example.com",
             "password": "1234"

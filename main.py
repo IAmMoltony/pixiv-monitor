@@ -260,7 +260,7 @@ def send_email(subject, message_text, config):
         message = MIMEMultipart()
         message["From"] = sender
         message["To"] = receiver
-        message["Subject"] = f"{smtp_config['subject']} - {subject}"
+        message["Subject"] = f"pixiv-monitor alert - {subject}"
         message.attach(MIMEText(message_text, "plain"))
 
         try:
@@ -305,7 +305,7 @@ def check_illustrations(check_interval, config, api, seen):
                 try:
                     user_illusts_json = api.user_illusts(artist_id)
                     if "error" in user_illusts_json:
-                        logging.getLogger().info("Pixiv returned error response; refreshing access token.")
+                        logging.getLogger().info(f"Pixiv returned error response; refreshing access token. Response: {user_illusts_json}")
                         get_new_access_token(config)
                         api.set_auth(config["access_token"])
                         user_illusts_json = api.user_illusts(artist_id)
