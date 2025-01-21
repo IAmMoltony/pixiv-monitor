@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from pixivpy3 import *
 import json
 import threading
@@ -82,22 +84,16 @@ def get_config():
     with open("./settings.json", "r", encoding="utf-8") as config_json:
         return json.load(config_json)
 
-g_config = None
-g_seen = None
-g_api = None
-
-def save_config():
+def save_config(config):
     with open("./settings.json", "w", encoding="utf-8") as config_json:
-        config_json.write(json.dumps(g_config, indent=4))
+        config_json.write(json.dumps(config, indent=4))
 
 USER_AGENT = "PixivAndroidApp/5.0.234 (Android 11; Pixel 5)"
 AUTH_TOKEN_URL = "https://oauth.secure.pixiv.net/auth/token"
 CLIENT_ID = "MOBrBDS8blbauoSck0ZfDbtuzpyT"
 CLIENT_SECRET = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj"
 
-def get_new_access_token():
-    global g_config
-    
+def get_new_access_token(config):
     response = requests.post(
         AUTH_TOKEN_URL,
         data={
@@ -105,32 +101,28 @@ def get_new_access_token():
             "client_secret": CLIENT_SECRET,
             "grant_type": "refresh_token",
             "include_policy": "true",
-            "refresh_token": g_config["refresh_token"],
+            "refresh_token": config["refresh_token"],
         },
         headers={"User-Agent": USER_AGENT},
         timeout=30
     )
     
     data = response.json()
-    g_config["access_token"] = data["access_token"]
-    g_config["refresh_token"] = data["refresh_token"]
-    save_config()
+    config["access_token"] = data["access_token"]
+    config["refresh_token"] = data["refresh_token"]
+    save_config(config)
 
-def check_illustrations(check_interval):
-    global g_config
-    global g_api
-    global g_seen
-    
+def check_illustrations(check_interval, config, api, seen):
     while True:
-        for artist_id in g_config["artist_ids"]:
+        for artist_id in config["artist_ids"]:
             user_illusts_json = None
             while True:
                 try:
-                    user_illusts_json = g_api.user_illusts(artist_id)
+                    user_illusts_json = api.user_illusts(artist_id)
                     if "error" in user_illusts_json:
-                        get_new_access_token()
-                        g_api.set_auth(g_config["access_token"])
-                        user_illusts_json = g_api.user_illusts(artist_id)
+                        get_new_access_token(config)
+                        api.set_auth(config["access_token"])
+                        user_illusts_json = api.user_illusts(artist_id)
                     break
                 except Exception as e:
                     if isinstance(e, KeyboardInterrupt) or isinstance(e, SystemExit):
@@ -138,28 +130,25 @@ def check_illustrations(check_interval):
             illusts = user_illusts_json["illusts"]
             for illust_json in illusts:
                 illust = PixivIllustration.from_json(illust_json)
-                if not g_seen.query_illust(illust.iden):
-                    g_seen.add_illust(illust.iden)
+                if not seen.query_illust(illust.iden):
+                    seen.add_illust(illust.iden)
                     print(f"Found new illustration:\n{str(illust)}")
-            g_seen.flush()
+            seen.flush()
         time.sleep(check_interval)
 
-# TODO make everything not global
-
 def main():
-    global g_config
-    global g_seen
-    global g_api
+    global seen
+    global api
 
-    g_config = get_config()
-    g_seen = SeenIllustrations()
+    config = get_config()
+    seen = SeenIllustrations()
     
-    check_interval = g_config["check_interval"]
+    check_interval = config["check_interval"]
     
-    g_api = AppPixivAPI()
-    g_api.set_auth(g_config["access_token"])
+    api = AppPixivAPI()
+    api.set_auth(config["access_token"])
     
-    threading.Thread(target=check_illustrations, args=(check_interval,), daemon=True).start()
+    threading.Thread(target=check_illustrations, args=(check_interval, config, api, seen), daemon=True).start()
     
     while True:
         time.sleep(1)
