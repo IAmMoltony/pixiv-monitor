@@ -7,6 +7,7 @@ import time
 import os
 import requests
 import datetime
+import logging
 
 class PixivUser:
     def __init__(self, iden, name, account):
@@ -26,10 +27,14 @@ class PixivTag:
         self.name = name
         self.translated_name = translated_name
     
-    def __str__(self):
+    def __str__(self, use_color=True):
+        if use_color:
+            if self.translated_name is None:
+                return "\033[0;31mR-18\033[0m" if self.name == "R-18" else f"\033[0;36m{self.name}\033[0m"
+            return f"\033[0;36m{self.name} / {self.translated_name}\033[0m"
         if self.translated_name is None:
-            return "\033[0;31mR-18\033[0m" if self.name == "R-18" else f"\033[0;36m{self.name}\033[0m"
-        return f"\033[0;36m{self.name} / {self.translated_name}\033[0m"
+            return self.name
+        return f"{self.name} / {self.translated_name}"
     
     @staticmethod
     def from_json(tag_json):
@@ -51,8 +56,10 @@ class PixivIllustration:
         self.tags = tags
     
     def __str__(self):
-        tag_string = ", ".join(str(tag) for tag in self.tags)
-        return f"pixiv \033[0;36m#{self.iden}\033[0m\nTitle: \033[0;36m{self.title}\033[0m\nCaption: \033[0;36m{self.caption}\033[0m\nArtist: {str(self.user)}\nTags: {tag_string}"
+        return f"pixiv \033[0;36m#{self.iden}\033[0m\nTitle: \033[0;36m{self.title}\033[0m\nCaption: \033[0;36m{self.caption}\033[0m\nArtist: {str(self.user)}\nTags: {self.get_tag_string()}"
+
+    def get_tag_string(self, use_color=True):
+        return ", ".join(tag.__str__(use_color) for tag in self.tags)
     
     @staticmethod
     def from_json(json_illust):
@@ -81,6 +88,21 @@ class SeenIllustrations:
 
     def query_illust(self, iden):
         return iden in self.seen_illusts
+
+def init_logging():
+    logger = logging.getLogger()
+
+    logger.setLevel(logging.DEBUG)
+    file_handler = logging.FileHandler("pixiv-monitor.log")
+    file_handler.setLevel(logging.DEBUG)
+
+    formatter = logging.Formatter("[%(asctime)s]:%(levelname)s %(message)s")
+    file_handler.setFormatter(formatter)
+    
+    logger.addHandler(file_handler)
+
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("requests").setLevel(logging.WARNING)
 
 def hrdatetime():
     return datetime.datetime.now().strftime("%Y-%b-%d %H:%M:%S")
@@ -125,6 +147,7 @@ def check_illustrations(check_interval, config, api, seen):
                 try:
                     user_illusts_json = api.user_illusts(artist_id)
                     if "error" in user_illusts_json:
+                        logging.getLogger().info("Pixiv returned error response; refreshing access token.")
                         get_new_access_token(config)
                         api.set_auth(config["access_token"])
                         user_illusts_json = api.user_illusts(artist_id)
@@ -138,6 +161,7 @@ def check_illustrations(check_interval, config, api, seen):
                 if not seen.query_illust(illust.iden):
                     seen.add_illust(illust.iden)
                     print(f"[{hrdatetime()}] \033[0;32mFound new illustration:\033[0m\n{str(illust)}\n")
+                    logging.getLogger().info(f"New illustration: pixiv #{illust.iden} '{illust.title}' by {illust.user.name} (@{illust.user.account}). Tags: {illust.get_tag_string(False)}")
             seen.flush()
         time.sleep(check_interval)
 
@@ -145,13 +169,16 @@ def main():
     global seen
     global api
 
+    init_logging()
     config = get_config()
     seen = SeenIllustrations()
-    
+
     check_interval = config["check_interval"]
     
     api = AppPixivAPI()
     api.set_auth(config["access_token"])
+
+    logging.getLogger().info("pixiv-monitor has started")
     
     threading.Thread(target=check_illustrations, args=(check_interval, config, api, seen), daemon=True).start()
     
