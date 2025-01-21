@@ -15,7 +15,7 @@ class PixivUser:
         self.account = account
     
     def __str__(self):
-        return f"user #{self.iden} '{self.name}' (@{self.account})"
+        return f"\033[0;36m{self.name}\033[0m (@{self.account})"
     
     @staticmethod
     def from_json(json_user):
@@ -27,7 +27,9 @@ class PixivTag:
         self.translated_name = translated_name
     
     def __str__(self):
-        return f"{self.name} / {self.translated_name}"
+        if self.translated_name is None:
+            return "\033[0;31mR-18\033[0m" if self.name == "R-18" else f"\033[0;36m{self.name}\033[0m"
+        return f"\033[0;36m{self.name} / {self.translated_name}\033[0m"
     
     @staticmethod
     def from_json(tag_json):
@@ -50,7 +52,7 @@ class PixivIllustration:
     
     def __str__(self):
         tag_string = ", ".join(str(tag) for tag in self.tags)
-        return f"pixiv #{self.iden}\nTitle: '{self.title}'\nCaption: '{self.caption}'\nArtist: {str(self.user)}\nTags: {tag_string}"
+        return f"pixiv \033[0;36m#{self.iden}\033[0m\nTitle: \033[0;36m{self.title}\033[0m\nCaption: \033[0;36m{self.caption}\033[0m\nArtist: {str(self.user)}\nTags: {tag_string}"
     
     @staticmethod
     def from_json(json_illust):
@@ -135,7 +137,7 @@ def check_illustrations(check_interval, config, api, seen):
                 illust = PixivIllustration.from_json(illust_json)
                 if not seen.query_illust(illust.iden):
                     seen.add_illust(illust.iden)
-                    print(f"[{hrdatetime()}] Found new illustration:\n{str(illust)}\n")
+                    print(f"[{hrdatetime()}] \033[0;32mFound new illustration:\033[0m\n{str(illust)}\n")
             seen.flush()
         time.sleep(check_interval)
 
