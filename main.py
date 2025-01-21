@@ -6,6 +6,7 @@ import threading
 import time
 import os
 import requests
+import datetime
 
 class PixivUser:
     def __init__(self, iden, name, account):
@@ -79,6 +80,8 @@ class SeenIllustrations:
     def query_illust(self, iden):
         return iden in self.seen_illusts
 
+def hrdatetime():
+    return datetime.datetime.now().strftime("%Y-%b-%d %H:%M:%S")
 
 def get_config():
     with open("./settings.json", "r", encoding="utf-8") as config_json:
@@ -132,7 +135,7 @@ def check_illustrations(check_interval, config, api, seen):
                 illust = PixivIllustration.from_json(illust_json)
                 if not seen.query_illust(illust.iden):
                     seen.add_illust(illust.iden)
-                    print(f"Found new illustration:\n{str(illust)}")
+                    print(f"[{hrdatetime()}] Found new illustration:\n{str(illust)}\n")
             seen.flush()
         time.sleep(check_interval)
 
