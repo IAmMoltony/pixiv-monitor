@@ -2,3 +2,7 @@ seen.json
 settings.json
 *.swp
 pixiv-monitor.log
+illustlog.json
+__pycache__/
+rss.log
+pixiv.atom

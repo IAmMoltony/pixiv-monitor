@@ -37,12 +37,15 @@ class PixivTag:
         return tags
 
 class PixivIllustration:
-    def __init__(self, iden, title, caption, user, tags):
+    def __init__(self, iden, title, caption, user, tags, create_date):
         self.iden = iden
         self.title = title
         self.caption = caption
         self.user = user
         self.tags = tags
+
+        # for log:
+        self.create_date = create_date
     
     def __str__(self):
         return f"pixiv \033[0;36m#{self.iden}\033[0m\nTitle: \033[0;36m{self.title}\033[0m\nCaption: \033[0;36m{self.caption}\033[0m\nArtist: {str(self.user)}\nTags: {self.get_tag_string()}"
@@ -57,6 +60,7 @@ class PixivIllustration:
             json_illust["title"],
             json_illust["caption"],
             PixivUser.from_json(json_illust["user"]),
-            PixivTag.from_json_list(json_illust["tags"])
+            PixivTag.from_json_list(json_illust["tags"]),
+            json_illust["create_date"]
         )
 

@@ -1,4 +1,5 @@
 import json
+import logging
 
 def get_config():
     with open("./settings.json", "r", encoding="utf-8") as config_json:

@@ -1,0 +1,36 @@
+import json
+import os
+from pixivmodel import PixivIllustration
+
+def get_illust_log():
+    if not os.path.exists("./illustlog.json"):
+        return {"illusts": []}
+    with open("./illustlog.json", encoding="utf-8") as illustlog_json:
+        return json.load(illustlog_json)
+
+def save_illust_log(illust_log):
+    with open("./illustlog.json", "w", encoding="utf-8") as illustlog_json:
+        json.dump(illust_log, illustlog_json)
+
+# TODO i think we can add some shit to make the json module recognize our class (i have done this before)
+def serialize_illust(illust):
+    return {
+        "id": illust.iden,
+        "create_date": illust.create_date,
+        "title": illust.title,
+        "caption": illust.caption,
+        "user": {
+            "name": illust.user.name,
+            "account": illust.user.account,
+        },
+        "tags": illust.get_tag_string(False)
+    }
+
+def log_illust(illust):
+    log = get_illust_log()
+    illusts = log["illusts"]
+
+    illusts.append(serialize_illust(illust))
+    illusts.sort(key=lambda x: x["create_date"], reverse=True) # Sort by date so the newest ones come first in the json file
+
+    save_illust_log(log)
