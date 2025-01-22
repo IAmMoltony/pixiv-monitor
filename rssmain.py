@@ -36,7 +36,7 @@ def make_rss_feed(illust_log):
 
 class IllustLogChangeHandler(FileSystemEventHandler):
     def on_modified(self, event):
-        if event.src_path == "./illustlog.json":
+        if event.src_path == "./illustlog.json" or event.src_path == ".\\illustlog.json":
             logging.info("Illust log changed, regenerating RSS feed")
             make_rss_feed(illustlog.get_illust_log())
 
