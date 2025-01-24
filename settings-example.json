@@ -14,10 +14,7 @@
             "port": 587
         },
         "from_address": "fromaddr@example.com",
-        "to_addresses": [
-            "toaddr@example.com",
-            "toaddr2@example.com"
-        ],
+        "to_address": "toaddr@example.com",
         "credentials": {
             "login": "fromaddr@example.com",
             "password": "1234"
