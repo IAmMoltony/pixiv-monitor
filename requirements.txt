@@ -1,0 +1,4 @@
+feedgen
+watchdog
+requests
+pixivpy3
