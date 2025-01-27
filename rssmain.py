@@ -5,6 +5,7 @@ import illustlog
 import logging
 import time
 import datetime
+import json
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from pixivmodel import PixivIllustration
@@ -34,11 +35,20 @@ def make_rss_feed(illust_log):
 
     gen.rss_file("pixiv.atom")
 
+def make_rss_feed_safe():
+    while True:
+        try:
+            make_rss_feed(illustlog.get_illust_log())
+            break
+        except json.decoder.JSONDecodeError as jde:
+            logging.warn(f"Failed to part illust log JSON: {jde}, retry in 5 seconds")
+            time.sleep(5)
+
 class IllustLogChangeHandler(FileSystemEventHandler):
     def on_modified(self, event):
         if event.src_path == "./illustlog.json" or event.src_path == ".\\illustlog.json":
             logging.info("Illust log changed, regenerating RSS feed")
-            make_rss_feed(illustlog.get_illust_log())
+            make_rss_feed_safe()
 
 def main():
     logging.basicConfig(filename="rss.log", level=logging.INFO)
@@ -56,7 +66,7 @@ def main():
     observer.schedule(event_handler, path=".", recursive=False)
     observer.start()
 
-    make_rss_feed(illustlog.get_illust_log())
+    make_rss_feed_safe()
 
     try:
         while True:
