@@ -167,4 +167,8 @@ def main():
         time.sleep(1)
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("Gracefully stopping...")
+        sys.exit(0)
