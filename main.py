@@ -143,7 +143,7 @@ def check_illustrations(check_interval, config, api, seen):
                     log_message = f"New illustration: pixiv #{illust.iden} '{illust.title}' by {illust.user.name} (@{illust.user.account}). Tags: {illust.get_tag_string(False)}"
                     logging.getLogger().info(log_message)
                     illustlog.log_illust(illust)
-                    send_email(f"{illust.title} by {illust.user.name}", log_message, config)
+                    threading.Thread(target=send_email, args=(f"{illust.title} by {illust.user.name}", log_message, config), daemon=True).start()
             seen.flush()
         time.sleep(check_interval)
 
