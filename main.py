@@ -132,7 +132,7 @@ def check_artist(artist_id, api, config, seen):
         except Exception as e:
             if not isinstance(e, KeyboardInterrupt) and not isinstance(e, SystemExit):
                 logging.getLogger().error(f"Unhandled exception while trying to fetch illustrations: {e}")
-                raise
+                break
     illusts = user_illusts_json["illusts"]
     for illust_json in illusts:
         illust = PixivIllustration.from_json(illust_json)
