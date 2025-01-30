@@ -124,10 +124,9 @@ def check_illustrations(check_interval, config, api, seen):
                             handle_oauth_error(api, config)
                         elif "Rate Limit" in error_message:
                             logging.getLogger().info("We got rate limited; trying again")
-                            continue
+                            continue # this is what I call the slam our head against the wall until the wall breaks technique
                         else:
-                            logging.getLogger().warning("Unknown error; refershing access token just in case")
-                            handle_oauth_error(api, config)
+                            logging.getLogger().error("Unknown error. Should be handled properly.")
                         user_illusts_json = api.user_illusts(artist_id)
                     break
                 except Exception as e:
