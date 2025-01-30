@@ -18,18 +18,18 @@ from email.mime.multipart import MIMEMultipart
 
 class SeenIllustrations:
     def __init__(self):
-        self.seen_illusts = []
+        self.seen_illusts = set()
         if os.path.exists("./seen.json"):
             with open("./seen.json", "r", encoding="utf8") as seen_json:
                 jseen = json.load(seen_json)
-                self.seen_illusts = jseen["illusts"]
+                self.seen_illusts = set(jseen["illusts"])
 
     def flush(self):
         with open("./seen.json", "w", encoding="utf8") as seen_json:
-            json.dump({"illusts": self.seen_illusts}, seen_json)
+            json.dump({"illusts": list(self.seen_illusts)}, seen_json)
 
     def add_illust(self, iden):
-        self.seen_illusts.append(iden)
+        self.seen_illusts.add(iden)
 
     def query_illust(self, iden):
         return iden in self.seen_illusts
