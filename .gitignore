@@ -6,3 +6,4 @@ illustlog.json
 __pycache__/
 rss.log
 pixiv.atom
+.env

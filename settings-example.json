@@ -1,6 +1,4 @@
 {
-    "access_token": "YOUR ACCESS TOKEN HERE",
-    "refresh_token": "YOUR REFRESH TOKEN HERE",
     "artist_ids": [
         123,
         321,

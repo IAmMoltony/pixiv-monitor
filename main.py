@@ -13,6 +13,7 @@ import datetime
 import logging
 import smtplib
 import sys
+import dotenv
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -87,7 +88,7 @@ AUTH_TOKEN_URL = "https://oauth.secure.pixiv.net/auth/token"
 CLIENT_ID = "MOBrBDS8blbauoSck0ZfDbtuzpyT"
 CLIENT_SECRET = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj"
 
-def get_new_access_token(config):
+def get_new_access_token():
     response = requests.post(
         AUTH_TOKEN_URL,
         data={
@@ -95,21 +96,22 @@ def get_new_access_token(config):
             "client_secret": CLIENT_SECRET,
             "grant_type": "refresh_token",
             "include_policy": "true",
-            "refresh_token": config["refresh_token"],
+            "refresh_token": os.getenv("REFRESH_TOKEN"),
         },
         headers={"User-Agent": USER_AGENT},
         timeout=30
     )
     
     data = response.json()
-    config["access_token"] = data["access_token"]
-    config["refresh_token"] = data["refresh_token"]
+    dotenv.set_key(".env", "ACCESS_TOKEN", data["access_token"])
+    dotenv.set_key(".env", "REFRESH_TOKEN", data["refresh_token"])
+    dotenv.load_dotenv()
     settings.save_config(config)
 
-def handle_oauth_error(api, config):
+def handle_oauth_error(api):
     logging.getLogger().info("Refreshing access token")
-    get_new_access_token(config)
-    api.set_auth(config["access_token"])
+    get_new_access_token()
+    api.set_auth(os.getenv("ACCESS_TOKEN"))
 
 def check_illustrations(check_interval, config, api, seen):
     while True:
@@ -123,7 +125,7 @@ def check_illustrations(check_interval, config, api, seen):
                         error_message = user_illusts_json["error"]["message"]
                         if "invalid_grant" in error_message:
                             logging.getLogger().info("OAuth error detected; refreshing access token")
-                            handle_oauth_error(api, config)
+                            handle_oauth_error(api)
                         elif "Rate Limit" in error_message:
                             logging.getLogger().info("We got rate limited; trying again in 5 seconds...")
                             time.sleep(5)
@@ -155,13 +157,12 @@ def main():
     config = settings.get_config()
     seen = SeenIllustrations()
 
-    if not settings.check_config(config):
-        sys.exit(1)
-
     check_interval = config["check_interval"]
     
+    dotenv.load_dotenv()
+    
     api = AppPixivAPI()
-    api.set_auth(config["access_token"])
+    api.set_auth(os.getenv("ACCESS_TOKEN"))
 
     logging.getLogger().info("pixiv-monitor has started")
     
