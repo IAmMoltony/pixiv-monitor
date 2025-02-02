@@ -125,6 +125,7 @@ def check_illustrations(check_interval, config, api, seen):
                         if "invalid_grant" in error_message:
                             logging.getLogger().info("OAuth error detected; refreshing access token")
                             handle_oauth_error(api)
+                            continue
                         elif "Rate Limit" in error_message:
                             logging.getLogger().info("We got rate limited; trying again in 5 seconds...")
                             time.sleep(5)
@@ -138,13 +139,7 @@ def check_illustrations(check_interval, config, api, seen):
                         logging.getLogger().error(f"Unhandled exception while trying to fetch illustrations: {e}. Retrying in 5 seconds.")
                         time.sleep(5)
                         continue
-            illusts = None
-            try:
-                illusts = user_illusts_json["illusts"]
-            except KeyError:
-                print("key error please look in log i dont know what is causing this")
-                logging.getLogger().error(f"Pixiv response: {user_illusts_json}")
-                continue
+            illusts = user_illusts_json["illusts"]
             for illust_json in illusts:
                 illust = PixivIllustration.from_json(illust_json)
                 if not seen.query_illust(illust.iden):
