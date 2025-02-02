@@ -106,7 +106,6 @@ def get_new_access_token():
     dotenv.set_key(".env", "ACCESS_TOKEN", data["access_token"])
     dotenv.set_key(".env", "REFRESH_TOKEN", data["refresh_token"])
     dotenv.load_dotenv()
-    settings.save_config(config)
 
 def handle_oauth_error(api):
     logging.getLogger().info("Refreshing access token")
