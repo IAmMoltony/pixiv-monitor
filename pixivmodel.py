@@ -48,10 +48,13 @@ class PixivIllustration:
         self.create_date = create_date
     
     def __str__(self):
-        return f"pixiv \033[0;36m#{self.iden}\033[0m\nTitle: \033[0;36m{self.title}\033[0m\nCaption: \033[0;36m{self.caption}\033[0m\nArtist: {str(self.user)}\nTags: {self.get_tag_string()}"
+        return f"\033[0;34m\e[8;;{self.pixiv_link()}\e\\pixiv #{self.iden}\e]8;;\e\\\033[0m\nTitle: \033[0;36m{self.title}\033[0m\nCaption: \033[0;36m{self.caption}\033[0m\nArtist: {str(self.user)}\nTags: {self.get_tag_string()}"
 
     def get_tag_string(self, use_color=True):
         return ", ".join(tag.__str__(use_color) for tag in self.tags)
+
+    def pixiv_link(self):
+        return f"https://www.pixiv.net/en/artworks/{self.iden}"
     
     @staticmethod
     def from_json(json_illust):
