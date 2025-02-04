@@ -12,26 +12,6 @@ def save_config(config):
 def check_config(config):
     logger = logging.getLogger()
 
-    if "access_token" not in config:
-        print("Access token not specified in config. Halting.")
-        logger.error("Config check failed: access_token not specified")
-        return False
-
-    if not isinstance(config["access_token"], str):
-        print("Access token must be a string value. Halting.")
-        logger.error("Config check failed: access_token is not a string value")
-        return False
-
-    if "refresh_token" not in config:
-        print("Refresh token not specified in config. Halting.")
-        logger.error("Config check failed: refresh_token not specified")
-        return False
-
-    if not isinstance(config["refresh_token"], str):
-        print("Refresh token must be a string value. Halting.")
-        logger.error("Config check failed: refresh_token is not a string value")
-        return False
-
     if "artist_ids" not in config or len(config["artist_ids"]) == 0:
         print("No artist IDs specified. Halting.")
         logger.error("Config check failed: artist_ids not specified or empty")
