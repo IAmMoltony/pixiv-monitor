@@ -151,14 +151,13 @@ def check_illustrations(check_interval, config, api, seen):
                     print(f"[{hrdatetime()}] \033[0;32mFound new illustration:\033[0m\n{str(illust)}\n")
                     log_message = f"New illustration: pixiv #{illust.iden} '{illust.title}' by {illust.user.name} (@{illust.user.account}). Tags: {illust.get_tag_string(False)}"
                     logging.getLogger().info(log_message)
+                    notify.send_notification(f"'{illust.title}' by {illust.user.name} (@{illust.user.account})", illust.pixiv_link())
                     illustlog.log_illust(illust)
                     threading.Thread(target=send_email, args=(f"{illust.title} by {illust.user.name}", log_message, config), daemon=True).start()
             seen.flush()
         time.sleep(check_interval)
 
 def main():
-    notify.send_notification("test notification 123", "https://example.com")
-
     init_logging()
     config = settings.get_config()
     seen = SeenIllustrations()

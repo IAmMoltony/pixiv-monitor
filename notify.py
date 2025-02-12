@@ -3,10 +3,12 @@ import dbus
 import dbus.mainloop.glib
 import logging
 import webbrowser
+import threading
 from gi.repository import GLib
 
 # i suck have used an external library for this but they all suck bcus "cross platform"
 # probably gonna rewrite this a bit to work on windows + cross platform with fancy features
+# TODO make this work on windows
 
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
@@ -24,12 +26,13 @@ def send_notification(message, link):
 
         actions = ["default", "View"]
 
-        notification_id = interface.Notify("pixiv-monitor", 0, "printer", "pixiv-monitor alert!", message, actions, hints, 5000) # printer icon chosen for no reason
+        notification_id = interface.Notify("pixiv-monitor", 0, "printer", "pixiv-monitor alert!", message, actions, hints, 0) # printer icon chosen for no reason
 
         def on_action_invoked(iden, action):
-            print(f"got action on id {iden} action {action}")
             if iden == notification_id and action == "default":
                 webbrowser.open(link)
+                interface.CloseNotification(notification_id)
+                loop.quit()
 
         bus.add_signal_receiver(
             on_action_invoked,
@@ -37,8 +40,12 @@ def send_notification(message, link):
             signal_name="ActionInvoked"
         )
 
-        loop = GLib.MainLoop()
-        loop.run()
+        def run_loop():
+            global loop
+            loop = GLib.MainLoop()
+            loop.run()
+
+        threading.Thread(target=run_loop, daemon=True).start()
     except Exception as exc:
         # we can't dbus let's try notify-send
         logging.getLogger().warn(f"Unable to send dbus notification: {exc}; trying notify-send instead")
