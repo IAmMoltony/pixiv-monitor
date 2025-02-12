@@ -48,7 +48,13 @@ class PixivIllustration:
         self.create_date = create_date
     
     def __str__(self):
-        return f"\033[0;34m\033[8;;{self.pixiv_link()}\033\\pixiv #{self.iden}\033]8;;\033\\\033[0m\nTitle: \033[0;36m{self.title}\033[0m\nCaption: \033[0;36m{self.caption}\033[0m\nArtist: {str(self.user)}\nTags: {self.get_tag_string()}"
+        return (
+            f"\033]8;;{self.pixiv_link()}\033\\pixiv #{self.iden}\033]8;;\033\\\n"
+            f"Title: \033[0;36m{self.title}\033[0m\n"
+            f"Caption: \033[0;36m{self.caption}\033[0m\n"
+            f"Artist: {str(self.user)}\n"
+            f"Tags: {self.get_tag_string()}"
+        )
 
     def get_tag_string(self, use_color=True):
         return ", ".join(tag.__str__(use_color) for tag in self.tags)
