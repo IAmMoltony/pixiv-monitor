@@ -4,6 +4,7 @@ from pixivpy3 import *
 from pixivmodel import PixivUser, PixivIllustration
 import illustlog
 import settings
+import notify
 import json
 import threading
 import time
@@ -156,6 +157,8 @@ def check_illustrations(check_interval, config, api, seen):
         time.sleep(check_interval)
 
 def main():
+    notify.send_notification("test notification 123", "https://example.com")
+
     init_logging()
     config = settings.get_config()
     seen = SeenIllustrations()
