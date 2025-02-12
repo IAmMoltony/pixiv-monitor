@@ -103,9 +103,12 @@ def get_new_access_token():
     )
     
     data = response.json()
-    dotenv.set_key(".env", "ACCESS_TOKEN", data["access_token"])
-    dotenv.set_key(".env", "REFRESH_TOKEN", data["refresh_token"])
-    dotenv.load_dotenv()
+    new_access_token = data["access_token"]
+    new_refresh_token = data["refresh_token"]
+    dotenv.set_key(".env", "ACCESS_TOKEN", new_access_token)
+    dotenv.set_key(".env", "REFRESH_TOKEN", new_refresh_token)
+    os.environ["ACCESS_TOKEN"] = new_access_token
+    os.environ["REFRESH_TOKEN"] = new_refresh_token
 
 def handle_oauth_error(api):
     logging.getLogger().info("Refreshing access token")
