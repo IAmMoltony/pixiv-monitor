@@ -19,7 +19,7 @@ try:
 except ImportError:
     winnotify = None
 
-# i suck have used an external library for this but they all suck bcus "cross platform"
+# i could have used an external library for this but they all suck bcus "cross platform"
 # probably gonna rewrite this a bit to work on windows + cross platform with fancy features
 
 def send_notification(message, link):
