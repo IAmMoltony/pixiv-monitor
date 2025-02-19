@@ -6,6 +6,7 @@
     ],
     "check_interval": 30,
     "email": false,
+    "notifications_off": false,
     "smtp": {
         "mail_host": {
             "address": "example.com",

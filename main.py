@@ -167,7 +167,8 @@ def illust_worker(api, seen, artist_queue, config):
                     log_message = f"New illustration: pixiv #{illust.iden} '{illust.title}' by {illust.user.name} (@{illust.user.account}). Tags: {illust.get_tag_string(False)}"
                     logging.getLogger().info(log_message)
 
-                    notify.send_notification(f"'{illust.title}' by {illust.user.name} (@{illust.user.account})", illust.pixiv_link())
+                    if not config["notifications_off"]:
+                        notify.send_notification(f"'{illust.title}' by {illust.user.name} (@{illust.user.account})", illust.pixiv_link())
                     illustlog.log_illust(illust)
 
                     threading.Thread(target=send_email, args=(f"{illust.title} by {illust.user.name}", log_message, config), daemon=True).start()
