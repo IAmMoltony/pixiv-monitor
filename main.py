@@ -15,6 +15,8 @@ import logging
 import smtplib
 import sys
 import dotenv
+import threading
+import queue
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -116,45 +118,81 @@ def handle_oauth_error(api):
     get_new_access_token()
     api.set_auth(os.getenv("ACCESS_TOKEN"))
 
-def check_illustrations(check_interval, config, api, seen):
+def get_json_illusts(api, artist_id):
+    user_illusts_json = None
     while True:
-        for artist_id in config["artist_ids"]:
-            user_illusts_json = None
-            while True:
-                try:
-                    user_illusts_json = api.user_illusts(artist_id)
-                    if "error" in user_illusts_json:
-                        logging.getLogger().info(f"Pixiv returned error response: {user_illusts_json}")
-                        error_message = user_illusts_json["error"]["message"]
-                        if "invalid_grant" in error_message:
-                            logging.getLogger().info("OAuth error detected; refreshing access token")
-                            handle_oauth_error(api)
-                            continue
-                        elif "Rate Limit" in error_message:
-                            logging.getLogger().info("We got rate limited; trying again in 5 seconds...")
-                            time.sleep(5)
-                            continue
-                        else:
-                            logging.getLogger().error("Unknown error. Please handle it properly.")
-                        user_illusts_json = api.user_illusts(artist_id)
-                    break
-                except Exception as e:
-                    if not isinstance(e, KeyboardInterrupt) and not isinstance(e, SystemExit):
-                        logging.getLogger().error(f"Unhandled exception while trying to fetch illustrations: {e}. Retrying in 5 seconds.")
-                        time.sleep(5)
-                        continue
+        try:
+            user_illusts_json = api.user_illusts(artist_id)
+            if "error" in user_illusts_json:
+                logging.getLogger().info(f"Pixiv returned error response: {user_illusts_json}")
+                error_message = user_illusts_json["error"]["message"]
+                if "invalid_grant" in error_message:
+                    logging.getLogger().info("OAuth error detected; refreshing access token")
+                    handle_oauth_error(api)
+                    continue
+                elif "Rate Limit" in error_message:
+                    logging.getLogger().info("We got rate limited; trying again in 5 seconds...")
+                    time.sleep(5)
+                    continue
+                else:
+                    logging.getLogger().error("Unknown error. Please handle it properly.")
+                user_illusts_json = api.user_illusts(artist_id)
+            break
+        except Exception as e:
+            if not isinstance(e, KeyboardInterrupt) and not isinstance(e, SystemExit):
+                logging.getLogger().error(f"Unhandled exception while trying to fetch illustrations: {e}. Retrying in 5 seconds.")
+                time.sleep(5)
+                continue
+    return user_illusts_json
+
+def illust_worker(api, seen, artist_queue, config):
+    """Worker thread function: processes artists from the queue."""
+    while True:
+        try:
+            artist_id = artist_queue.get()
+            if artist_id is None:
+                break
+
+            user_illusts_json = get_json_illusts(api, artist_id)
+            if not user_illusts_json:
+                continue
+
             illusts = user_illusts_json["illusts"]
             for illust_json in illusts:
                 illust = PixivIllustration.from_json(illust_json)
                 if not seen.query_illust(illust.iden):
                     seen.add_illust(illust.iden)
                     print(f"[{hrdatetime()}] \033[0;32mFound new illustration:\033[0m\n{str(illust)}\n")
+
                     log_message = f"New illustration: pixiv #{illust.iden} '{illust.title}' by {illust.user.name} (@{illust.user.account}). Tags: {illust.get_tag_string(False)}"
                     logging.getLogger().info(log_message)
+
                     notify.send_notification(f"'{illust.title}' by {illust.user.name} (@{illust.user.account})", illust.pixiv_link())
                     illustlog.log_illust(illust)
+
                     threading.Thread(target=send_email, args=(f"{illust.title} by {illust.user.name}", log_message, config), daemon=True).start()
+
             seen.flush()
+        except Exception as e:
+            logging.getLogger().error(f"Error in worker thread: {e}")
+        finally:
+            artist_queue.task_done()
+
+def check_illustrations(check_interval, config, api, seen):
+    artist_queue = queue.Queue()
+
+    NUM_THREADS = 3
+    threads = []
+    for _ in range(NUM_THREADS):
+        thread = threading.Thread(target=illust_worker, args=(api, seen, artist_queue, config), daemon=True)
+        thread.start()
+        threads.append(thread)
+
+    while True:
+        for artist_id in config["artist_ids"]:
+            artist_queue.put(artist_id)
+
+        artist_queue.join()
         time.sleep(check_interval)
 
 def main():
@@ -163,14 +201,14 @@ def main():
     seen = SeenIllustrations()
 
     check_interval = config["check_interval"]
-    
+
     dotenv.load_dotenv()
-    
+
     api = AppPixivAPI()
     api.set_auth(os.getenv("ACCESS_TOKEN"))
 
     logging.getLogger().info("pixiv-monitor has started")
-    
+
     threading.Thread(target=check_illustrations, args=(check_interval, config, api, seen), daemon=True).start()
     
     while True:
