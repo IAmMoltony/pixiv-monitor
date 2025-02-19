@@ -5,8 +5,9 @@
         1234
     ],
     "check_interval": 30,
-    "email": false,
     "notifications_off": false,
+    "num_threads": 3,
+    "email": false,
     "smtp": {
         "mail_host": {
             "address": "example.com",

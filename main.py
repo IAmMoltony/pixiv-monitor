@@ -182,9 +182,9 @@ def illust_worker(api, seen, artist_queue, config):
 def check_illustrations(check_interval, config, api, seen):
     artist_queue = queue.Queue()
 
-    NUM_THREADS = 3
+    num_threads = config.get("num_threads", 3)
     threads = []
-    for _ in range(NUM_THREADS):
+    for _ in range(num_threads):
         thread = threading.Thread(target=illust_worker, args=(api, seen, artist_queue, config), daemon=True)
         thread.start()
         threads.append(thread)
