@@ -131,7 +131,7 @@ def get_json_illusts(api, artist_id):
                     handle_oauth_error(api)
                     continue
                 elif "Rate Limit" in error_message:
-                    logging.getLogger().info("We got rate limited; trying again in 5 seconds...")
+                    #logging.getLogger().info("We got rate limited; trying again in 5 seconds...")
                     time.sleep(5)
                     continue
                 else:
