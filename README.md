@@ -47,6 +47,38 @@ These are entirely optional if you don't want to use email notifications.
 1. `to_address`: What address the emails will be sent to.
 4. `credentials`: Your login and password for the email host server.
 
+## System notifications
+
+To get system notifications to work, you'll need to install some stuff depending on your OS.
+
+### Linux
+
+You'll need to install the python dbus package. Commands for the most common distros:
+
+```bash
+sudo apt install -y python3-dbus # debian and ubuntu
+sudo dnf install -y python3-dbus # fedora red hat
+sudo pacman -S python-dbus # arch btw
+sudo zypper install python3-dbus # opensuse (option 1)
+sudo zypper install dbus-1-python # opensuse (option 2)
+```
+
+If nothing works, you can try using the pip package:
+
+```bash
+pip install dbus-python
+```
+
+### Windows
+
+Install `plyer`:
+
+```bash
+pip install plyer
+```
+
+notifications will work now
+
 ## RSS
 
 To add RSS, simply run `rssmain.py` alongside `main.py`. It will automatically create the RSS file (`pixiv.atom`), which can then either be accessed locally or served using an HTTP server.
