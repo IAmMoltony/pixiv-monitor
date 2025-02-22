@@ -19,12 +19,24 @@ Before using pixiv-monitor, you have to configure it.
 
 First copy `settings-example.json` as `settings.json`. In the `settings.json` file, you'll need to set a few options:
 
-1. `access_token` and `refresh_token`: Your Pixiv API tokens.
 1. `artist_ids`: A list of IDs of the artists whose galleries you want to monitor.
 1. `check_interval`: How often to check, in seconds.
 1. `notifications_off`: Enable this option to disable system notifications.
 1. `num_threads`: Number of threads to use to check for artists. More threads speeds up the process, especially if you monitor many artists. Make sure you don't set it too high **or the script (and possibly your system) might break.**
 1. `email`: Whether to enable email notifications.
+
+Next you'll need to configure authentication as describe below.
+
+## Authentication
+
+Copy `.env.example` as `.env` and set the `ACCESS_TOKEN` and `REFRESH_TOKEN`. These are your Pixiv API tokens.
+
+The `.env` file should now look like this:
+
+```
+ACCESS_TOKEN=your-access-token
+REFRESH_TOKEN=your-refresh-token
+```
 
 ### SMTP options
 
