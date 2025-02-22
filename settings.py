@@ -1,7 +1,12 @@
 import json
 import logging
+import os
+import sys
 
 def get_config():
+    if not os.path.exists("./settings.json"):
+        print("Settings file not found. Please follow the setup instructions and try again.")
+        sys.exit(1)
     with open("./settings.json", "r", encoding="utf-8") as config_json:
         return json.load(config_json)
 
