@@ -179,6 +179,8 @@ def illust_worker(api, seen, artist_queue, config):
 
             seen.flush()
         except Exception as e:
+            if config["crash_on_exception"]:
+                raise
             logging.getLogger().error(f"Error in worker thread: {e}")
         finally:
             artist_queue.task_done()

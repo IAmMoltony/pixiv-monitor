@@ -1,6 +1,9 @@
 import json
 import os
+import threading
 from pixivmodel import PixivIllustration
+
+LOCK = threading.Lock()
 
 def get_illust_log():
     if not os.path.exists("./illustlog.json"):
@@ -9,8 +12,11 @@ def get_illust_log():
         return json.load(illustlog_json)
 
 def save_illust_log(illust_log):
-    with open("./illustlog.json", "w", encoding="utf-8") as illustlog_json:
-        json.dump(illust_log, illustlog_json)
+    with LOCK:
+        temp_path = "./illustlog.json.tmp"
+        with open(temp_path, "w", encoding="utf-8") as illustlog_json:
+            json.dump(illust_log, illustlog_json, ensure_ascii=False, indent=2)
+        os.replace(temp_path, "./illustlog.json")
 
 # TODO i think we can add some shit to make the json module recognize our class (i have done this before)
 def serialize_illust(illust):
