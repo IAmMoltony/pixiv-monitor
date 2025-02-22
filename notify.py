@@ -15,9 +15,9 @@ except ImportError:
 
 # window
 try:
-    from plyer import notification as winnotify
+    import win10toast_click
 except ImportError:
-    winnotify = None
+    win10toast_click = None
 
 # i could have used an external library for this but they all suck bcus "cross platform"
 # probably gonna rewrite this a bit to work on windows + cross platform with fancy features
@@ -65,12 +65,11 @@ def send_notification(message, link):
         # fallback in case we don't have dbus or it fail
         subprocess.run(["notify-send", "-i", "dialog-information", "pixiv-monitor alert!", message, "-t", "0"])
     elif sys.platform.startswith("win"):
-        if winnotify:
-            winnotify.notify(
-                title="pixiv-monitor alert!",
-                message=message,
-                app_name="pixiv-monitor",
-                timeout=20
-            )
+        if win10toast_click:
+            def do_notification():
+                def open_link():
+                    webbrowser.open(link) # TODO handle the stupid ass warning that wparam or some shit im not familiar with win32
+                win10toast_click.ToastNotifier().show_toast("pixiv-monitor alert!", message, duration=10, callback_on_click=open_link)
+            threading.Thread(target=do_notification, daemon=True).start()
         else:
-            logging.getLogger().warn("Can't send notification because plyer isn't installed") # TODO windows click link
+            logging.getLogger().warn("Can't send notification because win10toast-click isn't installed")

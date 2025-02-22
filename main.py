@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 from pixivpy3 import *
+from pixivpy3.utils import PixivError
 from pixivmodel import PixivUser, PixivIllustration
 import illustlog
 import settings
@@ -139,7 +140,10 @@ def get_json_illusts(api, artist_id):
                 user_illusts_json = api.user_illusts(artist_id)
             break
         except Exception as e:
-            if not isinstance(e, KeyboardInterrupt) and not isinstance(e, SystemExit):
+            if isinstance(e, PixivError):
+                print("Pixiv Error occured. Please make sure authentication is set up and your API token is valid.")
+                sys.exit(1)
+            elif not isinstance(e, KeyboardInterrupt) and not isinstance(e, SystemExit):
                 logging.getLogger().error(f"Unhandled exception while trying to fetch illustrations: {e}. Retrying in 5 seconds.")
                 time.sleep(5)
                 continue

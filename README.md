@@ -71,13 +71,15 @@ pip install dbus-python
 
 ### Windows
 
-Install `plyer`:
+Install `win10toast-click`:
 
 ```bash
-pip install plyer
+pip install win10toast-click
 ```
 
 notifications will work now
+
+and yeah it only works on windows 10+ but lowkey you shouldn't be using anything older if ur on windows
 
 ## RSS
 
