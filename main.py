@@ -18,6 +18,7 @@ import sys
 import dotenv
 import threading
 import queue
+import random
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -192,8 +193,10 @@ def check_illustrations(check_interval, config, api, seen):
         thread.start()
         threads.append(thread)
 
+    shuffled_ids = random.sample(config["artist_ids"], len(config["artist_ids"]))
+
     while True:
-        for artist_id in config["artist_ids"]:
+        for artist_id in shuffled_ids:
             artist_queue.put(artist_id)
 
         artist_queue.join()
