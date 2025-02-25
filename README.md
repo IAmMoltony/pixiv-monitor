@@ -71,10 +71,10 @@ pip install dbus-python
 
 ### Windows
 
-Install `win10toast-click`:
+Install `winotify`:
 
 ```bash
-pip install win10toast-click
+pip install winotify
 ```
 
 notifications will work now
