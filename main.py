@@ -1,26 +1,28 @@
 #!/usr/bin/python3
 
-from pixivpy3 import *
-from pixivpy3.utils import PixivError
-from pixivmodel import PixivUser, PixivIllustration
-import illustlog
-import settings
-import notify
 import json
 import threading
 import time
 import os
-import requests
 import datetime
 import logging
 import smtplib
 import sys
-import dotenv
-import threading
 import queue
 import random
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+
+from pixivpy3 import *
+from pixivpy3.utils import PixivError
+
+import requests
+import dotenv
+
+import illustlog
+import settings
+import notify
+from pixivmodel import PixivIllustration
 
 class SeenIllustrations:
     def __init__(self):
@@ -84,7 +86,7 @@ def send_email(subject, message_text, config):
             smtp.login(login, password)
             smtp.sendmail(sender, receiver, message.as_string())
         except Exception as exc:
-            logging.getLogger().error(f"Error sending e-mail: {exc}")
+            logging.getLogger().error("Error sending e-mail: %s", exc)
         finally:
             smtp.quit()
 
@@ -126,23 +128,22 @@ def get_json_illusts(api, artist_id):
         try:
             user_illusts_json = api.user_illusts(artist_id)
             if "error" in user_illusts_json:
-                logging.getLogger().info(f"Pixiv returned error response: {user_illusts_json}")
+                logging.getLogger().info("Pixiv returned error response: %s", user_illusts_json)
                 error_message = user_illusts_json["error"]["message"]
                 if "invalid_grant" in error_message:
                     logging.getLogger().info("OAuth error detected; refreshing access token")
                     handle_oauth_error(api)
                     continue
-                elif "Rate Limit" in error_message:
+                if "Rate Limit" in error_message:
                     #logging.getLogger().info("We got rate limited; trying again in 5 seconds...")
                     time.sleep(5)
                     continue
-                else:
-                    logging.getLogger().error("Unknown error. Please handle it properly.")
+                logging.getLogger().error("Unknown error. Please handle it properly.")
                 user_illusts_json = api.user_illusts(artist_id)
             break
         except Exception as e:
             if not isinstance(e, KeyboardInterrupt) and not isinstance(e, SystemExit):
-                logging.getLogger().error(f"Unhandled exception while trying to fetch illustrations: {e}. Retrying in 5 seconds.")
+                logging.getLogger().error("Unhandled exception while trying to fetch illustrations: %s. Retrying in 5 seconds.", e)
                 time.sleep(5)
                 continue
     return user_illusts_json
@@ -179,7 +180,7 @@ def illust_worker(api, seen, artist_queue, config):
         except Exception as e:
             if "crash_on_exception" in config and config["crash_on_exception"]:
                 raise
-            logging.getLogger().error(f"Error in worker thread: {e}")
+            logging.getLogger().error("Error in worker thread: %s", e)
         finally:
             artist_queue.task_done()
 
