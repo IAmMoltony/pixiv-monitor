@@ -1,3 +1,5 @@
+import html
+
 class PixivUser:
     def __init__(self, iden, name, account):
         self.iden = iden
@@ -48,10 +50,12 @@ class PixivIllustration:
         self.create_date = create_date
     
     def __str__(self):
+        unescape_caption = html.unescape(self.caption)
+
         return (
             f"\033]8;;{self.pixiv_link()}\033\\pixiv #{self.iden}\033]8;;\033\\\n"
             f"Title: \033[0;36m{self.title}\033[0m\n"
-            f"Caption: \033[0;36m{self.caption}\033[0m\n"
+            f"Caption: \033[0;36m{unescape_caption}\033[0m\n"
             f"Artist: {str(self.user)}\n"
             f"Tags: {self.get_tag_string()}"
         )
