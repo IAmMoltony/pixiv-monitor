@@ -128,7 +128,6 @@ def get_json_illusts(api, artist_id):
         try:
             user_illusts_json = api.user_illusts(artist_id)
             if "error" in user_illusts_json:
-                logging.getLogger().info("Pixiv returned error response: %s", user_illusts_json)
                 error_message = user_illusts_json["error"]["message"]
                 if "invalid_grant" in error_message:
                     logging.getLogger().info("OAuth error detected; refreshing access token")
@@ -138,7 +137,7 @@ def get_json_illusts(api, artist_id):
                     #logging.getLogger().info("We got rate limited; trying again in 5 seconds...")
                     time.sleep(5)
                     continue
-                logging.getLogger().error("Unknown error. Please handle it properly.")
+                logging.getLogger().error("Unknown error. Please handle it properly. %s", user_illusts_json)
                 user_illusts_json = api.user_illusts(artist_id)
             break
         except Exception as e:
