@@ -111,7 +111,7 @@ def get_new_access_token():
     
     data = response.json()
     os.environ["REFRESH_TOKEN"] = data["refresh_token"] # pretty sure its constant
-    return data["ACCESS_TOKEN"]
+    return data["access_token"]
 
 def handle_oauth_error(api):
     logging.getLogger().info("Refreshing access token")
