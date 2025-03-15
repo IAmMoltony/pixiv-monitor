@@ -149,7 +149,6 @@ def get_json_illusts(api, artist_id):
     return user_illusts_json
 
 def illust_worker(api, seen, artist_queue, config):
-    """Worker thread function: processes artists from the queue."""
     while True:
         try:
             artist_id = artist_queue.get()
