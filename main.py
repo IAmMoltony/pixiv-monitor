@@ -110,17 +110,13 @@ def get_new_access_token():
     )
     
     data = response.json()
-    new_access_token = data["access_token"]
-    new_refresh_token = data["refresh_token"]
-    dotenv.set_key(".env", "ACCESS_TOKEN", new_access_token)
-    dotenv.set_key(".env", "REFRESH_TOKEN", new_refresh_token)
-    os.environ["ACCESS_TOKEN"] = new_access_token
-    os.environ["REFRESH_TOKEN"] = new_refresh_token
+    os.environ["REFRESH_TOKEN"] = data["refresh_token"] # pretty sure its constant
+    return data["ACCESS_TOKEN"]
 
 def handle_oauth_error(api):
     logging.getLogger().info("Refreshing access token")
-    get_new_access_token()
-    api.set_auth(os.getenv("ACCESS_TOKEN"))
+    access_token = get_new_access_token()
+    api.set_auth(access_token)
 
 def get_json_illusts(api, artist_id):
     user_illusts_json = None
@@ -210,10 +206,10 @@ def main():
 
     dotenv.load_dotenv()
 
-    api = AppPixivAPI()
-    api.set_auth(os.getenv("ACCESS_TOKEN"))
-
     logging.getLogger().info("pixiv-monitor has started")
+
+    api = AppPixivAPI()
+    api.set_auth(get_new_access_token())
 
     threading.Thread(target=check_illustrations, args=(check_interval, config, api, seen), daemon=True).start()
     
