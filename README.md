@@ -31,13 +31,12 @@ Next you'll need to configure authentication as describe below.
 
 It's best to create a separate Pixiv account if you want to use the site in the browser without hitting a rate limit.
 
-Copy `.env.example` as `.env` and set the `ACCESS_TOKEN` and `REFRESH_TOKEN`. These are your Pixiv API tokens.
+Copy `.env.example` as `.env` and set the `REFRESH_TOKEN` variable. This is your Pixiv refresh token.
 
 The `.env` file should now look like this:
 
 ```
-ACCESS_TOKEN=your-access-token
-REFRESH_TOKEN=your-refresh-token
+REFRESH_TOKEN='your-refresh-token'
 ```
 
 ### SMTP options
