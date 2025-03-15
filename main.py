@@ -6,10 +6,12 @@ import time
 import os
 import datetime
 import logging
+import logging.handlers
 import smtplib
 import sys
 import queue
 import random
+import pathlib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -45,10 +47,12 @@ class SeenIllustrations:
         return iden in self.seen_illusts
 
 def init_logging():
+    pathlib.Path("log").mkdir(parents=True, exist_ok=True)
+    
     logger = logging.getLogger()
 
     logger.setLevel(logging.DEBUG)
-    file_handler = logging.FileHandler("pixiv-monitor.log", encoding="utf-8")
+    file_handler = logging.handlers.RotatingFileHandler(os.path.join("log", "pixiv-monitor.log"), encoding="utf-8", maxBytes=10 * 1024 * 1024, backupCount=5) # 10mb max todo put in config
     file_handler.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter("[%(asctime)s]:%(levelname)s %(message)s")
