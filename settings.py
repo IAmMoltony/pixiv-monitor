@@ -120,3 +120,4 @@ def check_config(config):
 
     return True
 
+# TODO aughhgughhhh its 11 30 pm and i dont wanna do the default options for the log ones and rewriting for this to work without logging........so todo do them

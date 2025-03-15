@@ -23,7 +23,22 @@ First copy `settings-example.json` as `settings.json`. In the `settings.json` fi
 1. `check_interval`: How often to check, in seconds.
 1. `notifications_off`: Enable this option to disable system notifications.
 1. `num_threads`: Number of threads to use to check for artists. More threads speeds up the process, especially if you monitor many artists. Make sure you don't set it too high **or the script (and possibly your system) might break.**
+1. `log`: Options for logging described below.
 1. `email`: Whether to enable email notifications.
+1. `smtp`: SMTP options for sending emails, described below. No need to change if you don't use email notifications.
+
+### Logging options
+
+1. `backup_count`: How many log files to keep.
+1. `max_size`: Maximum size of one log file in MiB.
+1. `directory`: What directory to keep log files in.
+
+### SMTP options
+
+1. `mail_host`: The SMTP host server. `address` is the SMTP host address, `port` is the port.
+1. `from_address`: What address the emails will be sent from.
+1. `to_address`: What address the emails will be sent to.
+4. `credentials`: Your login and password for the email host server.
 
 Next you'll need to configure authentication as describe below.
 
@@ -38,15 +53,6 @@ The `.env` file should now look like this:
 ```
 REFRESH_TOKEN='your-refresh-token'
 ```
-
-### SMTP options
-
-These are entirely optional if you don't want to use email notifications.
-
-1. `mail_host`: The SMTP host server. `address` is the SMTP host address, `port` is the port.
-1. `from_address`: What address the emails will be sent from.
-1. `to_address`: What address the emails will be sent to.
-4. `credentials`: Your login and password for the email host server.
 
 ## System notifications
 

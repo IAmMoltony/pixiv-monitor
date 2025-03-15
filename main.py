@@ -46,13 +46,14 @@ class SeenIllustrations:
     def query_illust(self, iden):
         return iden in self.seen_illusts
 
-def init_logging():
-    pathlib.Path("log").mkdir(parents=True, exist_ok=True)
+def init_logging(config):
+    log_config = config["log"]
+    pathlib.Path(log_config["directory"]).mkdir(parents=True, exist_ok=True)
     
     logger = logging.getLogger()
 
     logger.setLevel(logging.DEBUG)
-    file_handler = logging.handlers.RotatingFileHandler(os.path.join("log", "pixiv-monitor.log"), encoding="utf-8", maxBytes=10 * 1024 * 1024, backupCount=5) # 10mb max todo put in config
+    file_handler = logging.handlers.RotatingFileHandler(os.path.join(log_config["directory"], "pixiv-monitor.log"), encoding="utf-8", maxBytes=log_config["max_size"] * 1024 * 1024, backupCount=log_config["backup_count"])
     file_handler.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter("[%(asctime)s]:%(levelname)s %(message)s")
@@ -202,8 +203,8 @@ def check_illustrations(check_interval, config, api, seen):
         time.sleep(check_interval)
 
 def main():
-    init_logging()
     config = settings.get_config()
+    init_logging(config)
     seen = SeenIllustrations()
 
     check_interval = config["check_interval"]
