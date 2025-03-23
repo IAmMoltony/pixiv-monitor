@@ -7,7 +7,7 @@ class PixivUser:
         self.account = account
     
     def __str__(self):
-        return f"\033[0;36m{self.name}\033[0m (@{self.account})"
+        return f"\033[0;36m\033]8;;{self.pixiv_link()}\033\\{self.name}\033]8;;\033\\\033[0m \033]8;;{self.pixiv_stacc_link()}\033\\(@{self.account})\033]8;;\033\\"
     
     @staticmethod
     def from_json(json_user):
@@ -15,6 +15,9 @@ class PixivUser:
 
     def pixiv_link(self):
         return f"https://pixiv.net/en/users/{self.iden}"
+
+    def pixiv_stacc_link(self):
+        return f"https://pixiv.net/stacc/{self.account}"
 
 class PixivTag:
     def __init__(self, name, translated_name):
