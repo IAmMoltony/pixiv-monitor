@@ -181,7 +181,7 @@ def illust_worker(api, seen, artist_queue, config):
                     # as to not spam ntfy's servers, we send one (1) notification with a summary of the pictures
                     # link to the pixiv url instead of the individual pictures
                     notify.send_ntfy(config["ntfy_topic"], f"{num_new_illusts} new illustrations from {illust.user.name}", illust.user.pixiv_link())
-                else:
+                elif num_new_illusts > 0:
                     # just like usual
                     notify.send_ntfy(config["ntfy_topic"], f"'{illust.title}' by {illust.user.name}", illust.pixiv_link())
 
