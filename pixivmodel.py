@@ -13,6 +13,9 @@ class PixivUser:
     def from_json(json_user):
         return PixivUser(json_user["id"], json_user["name"], json_user["account"])
 
+    def pixiv_link(self):
+        return f"https://pixiv.net/en/users/{self.iden}"
+
 class PixivTag:
     def __init__(self, name, translated_name):
         self.name = name

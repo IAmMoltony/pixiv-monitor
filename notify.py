@@ -3,6 +3,7 @@ import logging
 import webbrowser
 import threading
 import sys
+import requests
 
 # lunix
 try:
@@ -20,7 +21,6 @@ except ImportError:
     winotify = None
 
 # i could have used an external library for this but they all suck bcus "cross platform"
-# probably gonna rewrite this a bit to work on windows + cross platform with fancy features
 
 def send_notification(message, link):
     if sys.platform.startswith("linux"):
@@ -71,3 +71,15 @@ def send_notification(message, link):
             toast.show()
         else:
             logging.getLogger().warn("Can't send notification because winofity isn't installed")
+
+def send_ntfy(ntfy_topic, message, link):
+    requests.post(
+        f"https://ntfy.sh",
+        json={
+            "topic": ntfy_topic,
+            "title": "pixiv-monitor alert!",
+            "message": message,
+            "click": link
+        },
+        headers={"Content-Type": "application/json; charset=utf-8"}
+    )

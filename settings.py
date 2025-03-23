@@ -3,6 +3,12 @@ import logging
 import os
 import sys
 
+DEFAULT_LOG_CONFIG = {
+    "backup_count": 5,
+    "max_size": 10,
+    "directory": "log"
+}
+
 def get_config():
     if not os.path.exists("./settings.json"):
         print("Settings file not found. Please follow the setup instructions and try again.")
@@ -117,6 +123,9 @@ def check_config(config):
         print("SMTP password must be a string value. Halting.")
         logger.error("Config check failed: smtp credentials password is not a string value")
         return False
+
+    if "log" not in config:
+        config["log"] = DEFAULT_LOG_CONFIG
 
     return True
 

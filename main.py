@@ -47,7 +47,7 @@ class SeenIllustrations:
         return iden in self.seen_illusts
 
 def init_logging(config):
-    log_config = config["log"]
+    log_config = config.get("log", settings.DEFAULT_LOG_CONFIG)
     pathlib.Path(log_config["directory"]).mkdir(parents=True, exist_ok=True)
     
     logger = logging.getLogger()
@@ -160,9 +160,11 @@ def illust_worker(api, seen, artist_queue, config):
                 continue
 
             illusts = user_illusts_json["illusts"]
+            num_new_illusts = 0
             for illust_json in illusts:
                 illust = PixivIllustration.from_json(illust_json)
                 if not seen.query_illust(illust.iden):
+                    num_new_illusts += 1
                     seen.add_illust(illust.iden)
                     print(f"[{hrdatetime()}] \033[0;32mFound new illustration:\033[0m\n{str(illust)}\n")
 
@@ -174,6 +176,14 @@ def illust_worker(api, seen, artist_queue, config):
                     illustlog.log_illust(illust)
 
                     threading.Thread(target=send_email, args=(f"{illust.title} by {illust.user.name}", log_message, config), daemon=True).start()
+            if "ntfy_topic" in config:
+                if num_new_illusts > 1:
+                    # as to not spam ntfy's servers, we send one (1) notification with a summary of the pictures
+                    # link to the pixiv url instead of the individual pictures
+                    notify.send_ntfy(config["ntfy_topic"], f"{num_new_illusts} new illustrations from {illust.user.name}", illust.user.pixiv_link())
+                else:
+                    # just like usual
+                    notify.send_ntfy(config["ntfy_topic"], f"'{illust.title}' by {illust.user.name}", illust.pixiv_link())
 
             seen.flush()
         except Exception as e:

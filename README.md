@@ -24,6 +24,7 @@ First copy `settings-example.json` as `settings.json`. In the `settings.json` fi
 1. `notifications_off`: Enable this option to disable system notifications.
 1. `num_threads`: Number of threads to use to check for artists. More threads speeds up the process, especially if you monitor many artists. Make sure you don't set it too high **or the script (and possibly your system) might break.**
 1. `log`: Options for logging described below.
+1. `ntfy_topic`: Topic in which to send notifications using `ntfy.sh`. Skip this option if you don't need `ntfy.sh` notifications.
 1. `email`: Whether to enable email notifications.
 1. `smtp`: SMTP options for sending emails, described below. No need to change if you don't use email notifications.
 
