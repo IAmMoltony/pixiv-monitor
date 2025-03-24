@@ -186,7 +186,7 @@ def illust_worker(api, seen, artist_queue, config):
                     notify.send_ntfy(config["ntfy_topic"], f"{num_new_illusts} new illustrations from {illust.user.name}", illust.user.pixiv_link())
                 elif num_new_illusts > 0:
                     # just like usual
-                    notify.send_ntfy(config["ntfy_topic"], f"'{illust.title}' by {illust.user.name}", first_illust.pixiv_link())
+                    notify.send_ntfy(config["ntfy_topic"], f"'{illust.title}' by {illust.user.name}", first_illust.pixiv_link()) # TODO does this even work
 
             seen.flush()
         except Exception as e:
