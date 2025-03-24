@@ -161,10 +161,13 @@ def illust_worker(api, seen, artist_queue, config):
 
             illusts = user_illusts_json["illusts"]
             num_new_illusts = 0
+            first_illust = None
             for illust_json in illusts:
                 illust = PixivIllustration.from_json(illust_json)
                 if not seen.query_illust(illust.iden):
                     num_new_illusts += 1
+                    if num_new_illusts == 1:
+                        first_illust = illust
                     seen.add_illust(illust.iden)
                     print(f"[{hrdatetime()}] \033[0;32mFound new illustration:\033[0m\n{str(illust)}\n")
 
@@ -183,7 +186,7 @@ def illust_worker(api, seen, artist_queue, config):
                     notify.send_ntfy(config["ntfy_topic"], f"{num_new_illusts} new illustrations from {illust.user.name}", illust.user.pixiv_link())
                 elif num_new_illusts > 0:
                     # just like usual
-                    notify.send_ntfy(config["ntfy_topic"], f"'{illust.title}' by {illust.user.name}", illust.pixiv_link())
+                    notify.send_ntfy(config["ntfy_topic"], f"'{illust.title}' by {illust.user.name}", first_illust.pixiv_link())
 
             seen.flush()
         except Exception as e:
