@@ -69,8 +69,6 @@ def send_notification(message, link):
             toast = winotify.Notification(app_id="pixiv-monitor", title="pixiv-monitor alert!", msg=message)
             toast.add_actions(label="View", launch=link)
             toast.show()
-        else:
-            logging.getLogger().warn("Can't send notification because winofity isn't installed")
 
 def send_ntfy(ntfy_topic, message, link):
     requests.post(

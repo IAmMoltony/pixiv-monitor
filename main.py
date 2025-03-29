@@ -225,6 +225,12 @@ def main():
     dotenv.load_dotenv()
 
     logging.getLogger().info("pixiv-monitor has started")
+    
+    if sys.platform.startswith("win"):
+        try:
+            import winotify
+        except ImportError:
+            logging.getLogger().warn("winotify isn't installed. System notificatins will not be shown")
 
     api = AppPixivAPI()
     api.set_auth(get_new_access_token())
