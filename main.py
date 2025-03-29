@@ -230,7 +230,7 @@ def main():
         try:
             import winotify
         except ImportError:
-            logging.getLogger().warn("winotify isn't installed. System notificatins will not be shown")
+            logging.getLogger().warn("winotify isn't installed. System notifications will not be shown")
 
     api = AppPixivAPI()
     api.set_auth(get_new_access_token())
