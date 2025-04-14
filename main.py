@@ -171,7 +171,9 @@ def illust_worker(api, seen, artist_queue, config):
                     seen.add_illust(illust.iden)
                     print(f"[{hrdatetime()}] \033[0;32mFound new illustration:\033[0m\n{str(illust)}\n")
 
-                    log_message = f"New illustration: pixiv #{illust.iden} '{illust.title}' by {illust.user.name} (@{illust.user.account}). Tags: {illust.get_tag_string(False)}"
+                    page_count_string = "" if illust.page_count == 0 else f" ({illust.page_count} pages)"
+
+                    log_message = f"New illustration: pixiv #{illust.iden}{page_count_string} '{illust.title}' by {illust.user.name} (@{illust.user.account}). Tags: {illust.get_tag_string(False)}"
                     logging.getLogger().info(log_message)
 
                     if not config["notifications_off"]:

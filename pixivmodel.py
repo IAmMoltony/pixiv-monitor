@@ -5,7 +5,7 @@ class PixivUser:
         self.iden = iden
         self.name = name
         self.account = account
-    
+ 
     def __str__(self):
         return f"\033[0;36m\033]8;;{self.pixiv_link()}\033\\{self.name}\033]8;;\033\\\033[0m \033]8;;{self.pixiv_stacc_link()}\033\\(@{self.account})\033]8;;\033\\"
     
@@ -45,12 +45,13 @@ class PixivTag:
         return tags
 
 class PixivIllustration:
-    def __init__(self, iden, title, caption, user, tags, create_date):
+    def __init__(self, iden, title, caption, user, tags, page_count, create_date):
         self.iden = iden
         self.title = title
         self.caption = caption
         self.user = user
         self.tags = tags
+        self.page_count = page_count
 
         # for log:
         self.create_date = create_date
@@ -61,8 +62,10 @@ class PixivIllustration:
         newline = "\n" if multiline_caption != unescape_caption else ""
         caption_string = f"Caption: \033[0;36m{newline}{multiline_caption}\033[0m\n" if len(self.caption.strip()) != 0 else ""
 
+        page_count_string = "" if self.page_count == 0 else f" ({self.page_count} pages)"
+
         return (
-            f"\033]8;;{self.pixiv_link()}\033\\pixiv #{self.iden}\033]8;;\033\\\n"
+            f"\033]8;;{self.pixiv_link()}\033\\pixiv #{self.iden}\033]8;;\033\\{page_count_string}\n"
             f"Title: \033[0;36m{self.title}\033[0m\n"
             f"{caption_string}"
             f"Artist: {str(self.user)}\n"
@@ -83,6 +86,7 @@ class PixivIllustration:
             json_illust["caption"],
             PixivUser.from_json(json_illust["user"]),
             PixivTag.from_json_list(json_illust["tags"]),
+            len(json_illust["meta_pages"]),
             json_illust["create_date"]
         )
 
