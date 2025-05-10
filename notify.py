@@ -70,12 +70,15 @@ def send_notification(message, link):
             toast.add_actions(label="View", launch=link)
             toast.show()
 
-def send_ntfy(ntfy_topic, message, link):
+def send_ntfy(ntfy_topic, message, link, r18_tag=""):
+    title_prefix = ""
+    if len(r18_tag) > 0:
+        title_prefix = f"[!{r18_tag}!]"
     requests.post(
         f"https://ntfy.sh",
         json={
             "topic": ntfy_topic,
-            "title": "pixiv-monitor alert!",
+            "title": f"{title_prefix}pixiv-monitor alert!",
             "message": message,
             "click": link
         },

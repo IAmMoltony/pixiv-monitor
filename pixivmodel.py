@@ -81,6 +81,9 @@ class PixivIllustration:
     def pixiv_link(self):
         return f"https://www.pixiv.net/en/artworks/{self.iden}"
     
+    def get_r18_tag(self):
+        return next((tag.name for tag in self.tags if tag.name == "R-18" or tag.name == "R-18G"), "")
+    
     @staticmethod
     def from_json(json_illust):
         return PixivIllustration(
