@@ -65,7 +65,7 @@ class PixivIllustration:
         newline = "\n" if multiline_caption != unescape_caption else ""
         caption_string = f"Caption: \033[0;36m{newline}{multiline_caption}\033[0m\n" if len(self.caption.strip()) != 0 else ""
 
-        page_count_string = "" if self.page_count == 0 else f" ({self.page_count} pages)"
+        page_count_string = "" if self.page_count == 0 else f" \033[0;33m({self.page_count} pages)\033[0m"
 
         return (
             f"\033]8;;{self.pixiv_link()}\033\\pixiv #{self.iden}\033]8;;\033\\{page_count_string}\n"
