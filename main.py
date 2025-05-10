@@ -177,7 +177,7 @@ def illust_worker(api, seen, artist_queue, config):
                     logging.getLogger().info(log_message)
 
                     if not config["notifications_off"]:
-                        notify.send_notification(f"'{illust.title}' by {illust.user.name} (@{illust.user.account})", illust.pixiv_link())
+                        notify.send_notification(f"'{illust.title}' by {illust.user.name} (@{illust.user.account})", illust.pixiv_link(), illust.get_r18_tag())
                     illustlog.log_illust(illust)
 
                     threading.Thread(target=send_email, args=(f"{illust.title} by {illust.user.name}", log_message, config), daemon=True).start()
