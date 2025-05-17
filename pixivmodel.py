@@ -28,7 +28,7 @@ class PixivTag:
         if use_color:
             if self.translated_name is None:
                 if self.name == "R-18" or self.name == "R-18G":
-                    return "\033[0;31m{self.name}\033[0m"
+                    return f"\033[0;31m{self.name}\033[0m"
                 else:
                     return f"\033[0;36m{self.name}\033[0m"
             return f"\033[0;36m{self.name} / {self.translated_name}\033[0m"
