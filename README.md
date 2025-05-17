@@ -34,8 +34,6 @@ First copy `settings-example.json` as `settings.json`. In the `settings.json` fi
 1. `max_size`: Maximum size of one log file in MiB.
 1. `directory`: What directory to keep log files in.
 
-Logging options apply to both maintenance and output log.
-
 ### SMTP options
 
 1. `mail_host`: The SMTP host server. `address` is the SMTP host address, `port` is the port.
