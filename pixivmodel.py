@@ -48,13 +48,14 @@ class PixivTag:
         return tags
 
 class PixivIllustration:
-    def __init__(self, iden, title, caption, user, tags, page_count, create_date):
+    def __init__(self, iden, title, caption, user, tags, page_count, create_date, is_ai):
         self.iden = iden
         self.title = title
         self.caption = caption
         self.user = user
         self.tags = tags
         self.page_count = page_count
+        self.is_ai = is_ai
 
         # for log:
         self.create_date = create_date
@@ -64,11 +65,13 @@ class PixivIllustration:
         multiline_caption = unescape_caption.replace("<br />", "\n")
         newline = "\n" if multiline_caption != unescape_caption else ""
         caption_string = f"Caption: \033[0;36m{newline}{multiline_caption}\033[0m\n" if len(self.caption.strip()) != 0 else ""
+        ai_string = "" if not self.is_ai else "\033[0;31m[!] AI-generated [!]\033[0m\n"
 
         page_count_string = "" if self.page_count == 0 else f" \033[0;33m({self.page_count} pages)\033[0m"
 
         return (
             f"\033]8;;{self.pixiv_link()}\033\\pixiv #{self.iden}\033]8;;\033\\{page_count_string}\n"
+            f"{ai_string}"
             f"Title: \033[0;36m{self.title}\033[0m\n"
             f"{caption_string}"
             f"Artist: {str(self.user)}\n"
@@ -93,6 +96,7 @@ class PixivIllustration:
             PixivUser.from_json(json_illust["user"]),
             PixivTag.from_json_list(json_illust["tags"]),
             len(json_illust["meta_pages"]),
-            json_illust["create_date"]
+            json_illust["create_date"],
+            json_illust["illust_ai_type"] == 2
         )
 
