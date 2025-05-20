@@ -118,7 +118,7 @@ def get_json_illusts(api, artist_id, token_switcher):
                     token_switcher.switch_token()
                     token_switcher.refresh_token()
                     logging.getLogger().info(f"Switch to account {token_switcher.current_token}")
-                    api.set_token(token_switcher.get_access_token())
+                    api.set_auth(token_switcher.get_access_token())
                     continue
                 logging.getLogger().error("Unknown error. Please handle it properly. %s", user_illusts_json)
                 user_illusts_json = api.user_illusts(artist_id)
