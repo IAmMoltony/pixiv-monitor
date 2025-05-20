@@ -1,5 +1,7 @@
 # pixiv-monitor
 
+*This is an experimental branch that replaces `pixivpy3` with the Pixiv AJAX API, to mitigate things like rate limits.*
+
 pixiv-monitor is a Python script for monitoring Pixiv artist galleries, so you can stay up-to-date on your favorite anime pictures.
 
 It even has RSS support. It's pretty basic, but works.

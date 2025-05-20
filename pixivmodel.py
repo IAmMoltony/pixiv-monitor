@@ -11,7 +11,11 @@ class PixivUser:
     
     @staticmethod
     def from_json(json_user):
-        return PixivUser(json_user["id"], json_user["name"], json_user["account"])
+        return PixivUser(json_user["id"], json_user["name"], json_user["account"]) # TODO useless with ajax api?
+
+    @staticmethod
+    def from_illust_json(json_illust):
+        return PixivUser(json_illust["userId"], json_illust["userName"], json_illust["userAccount"])
 
     def pixiv_link(self):
         return f"https://pixiv.net/en/users/{self.iden}"
@@ -38,7 +42,7 @@ class PixivTag:
     
     @staticmethod
     def from_json(tag_json):
-        return PixivTag(tag_json["name"], tag_json["translated_name"])
+        return PixivTag(tag_json["tag"], None) # TODO handle translated names (available with auth)
     
     @staticmethod
     def from_json_list(tags_json):
@@ -89,14 +93,17 @@ class PixivIllustration:
     
     @staticmethod
     def from_json(json_illust):
+        # TODO handle aiType
+        # TODO handle page count
+        # TODO difference between createDate and uploadDate?
         return PixivIllustration(
             json_illust["id"],
             json_illust["title"],
-            json_illust["caption"],
-            PixivUser.from_json(json_illust["user"]),
-            PixivTag.from_json_list(json_illust["tags"]),
-            len(json_illust["meta_pages"]),
-            json_illust["create_date"],
-            json_illust["illust_ai_type"] == 2
+            json_illust["description"],
+            PixivUser.from_illust_json(json_illust),
+            PixivTag.from_json_list(json_illust["tags"]["tags"]), # have to go in there twice for some reason
+            0,
+            json_illust["createDate"],
+            False
         )
 

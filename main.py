@@ -15,9 +15,6 @@ import pathlib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-from pixivpy3 import *
-from pixivpy3.utils import PixivError
-
 import requests
 import dotenv
 
@@ -25,6 +22,7 @@ import illustlog
 import settings
 import notify
 from pixivmodel import PixivIllustration
+from ajaxapi import PixivAjaxAPI
 
 class SeenIllustrations:
     def __init__(self):
@@ -123,30 +121,30 @@ def handle_oauth_error(api):
     access_token = get_new_access_token()
     api.set_auth(access_token)
 
-def get_json_illusts(api, artist_id):
-    user_illusts_json = None
+def get_illusts(api, artist_id):
+    print(f"dbg: begin get illusts {artist_id}")
+    begin_time = time.time()
+    illusts = []
     while True:
         try:
-            user_illusts_json = api.user_illusts(artist_id)
-            if "error" in user_illusts_json:
-                error_message = user_illusts_json["error"]["message"]
-                if "invalid_grant" in error_message:
-                    logging.getLogger().info("OAuth error detected; refreshing access token")
-                    handle_oauth_error(api)
-                    continue
-                if "Rate Limit" in error_message:
-                    #logging.getLogger().info("We got rate limited; trying again in 5 seconds...")
-                    time.sleep(5)
-                    continue
-                logging.getLogger().error("Unknown error. Please handle it properly. %s", user_illusts_json)
-                user_illusts_json = api.user_illusts(artist_id)
+            # get IDs
+            illust_ids = api.user_illusts(artist_id)
+            print(f"dbg: got {len(illust_ids)} ids")
+
+            # get illusts from the IDs
+            for illust_id in illust_ids:
+                print(f"dbg: process pixiv #{illust_id}")
+                illusts.append(PixivIllustration.from_json(api.illust_detail(illust_id)))
             break
         except Exception as e:
             if not isinstance(e, KeyboardInterrupt) and not isinstance(e, SystemExit):
                 logging.getLogger().error("Unhandled exception while trying to fetch illustrations: %s. Retrying in 5 seconds.", e)
                 time.sleep(5)
                 continue
-    return user_illusts_json
+    end_time = time.time()
+    runtime = end_time - begin_time
+    print(f"dbg: finish in {runtime} sec")
+    return illusts
 
 def illust_worker(api, seen, artist_queue, config):
     while True:
@@ -155,15 +153,13 @@ def illust_worker(api, seen, artist_queue, config):
             if artist_id is None:
                 break
 
-            user_illusts_json = get_json_illusts(api, artist_id)
-            if not user_illusts_json:
+            illusts = get_illusts(api, artist_id)
+            if not illusts:
                 continue
 
-            illusts = user_illusts_json["illusts"]
             num_new_illusts = 0
             first_illust = None
-            for illust_json in illusts:
-                illust = PixivIllustration.from_json(illust_json)
+            for illust in illusts:
                 if not seen.query_illust(illust.iden):
                     num_new_illusts += 1
                     if num_new_illusts == 1:
@@ -234,8 +230,9 @@ def main():
         except ImportError:
             logging.getLogger().warn("winotify isn't installed. System notifications will not be shown")
 
-    api = AppPixivAPI()
-    api.set_auth(get_new_access_token())
+    #api = AppPixivAPI()
+    #api.set_auth(get_new_access_token())
+    api = PixivAjaxAPI()
 
     threading.Thread(target=check_illustrations, args=(check_interval, config, api, seen), daemon=True).start()
     
