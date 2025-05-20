@@ -21,6 +21,7 @@ from pixivpy3.utils import PixivError
 import requests
 import dotenv
 
+from tokenswitcher import TokenSwitcher
 import illustlog
 import settings
 import notify
@@ -95,35 +96,13 @@ def send_email(subject, message_text, config):
         finally:
             smtp.quit()
 
-USER_AGENT = "PixivAndroidApp/5.0.234 (Android 11; Pixel 5)"
-AUTH_TOKEN_URL = "https://oauth.secure.pixiv.net/auth/token"
-CLIENT_ID = "MOBrBDS8blbauoSck0ZfDbtuzpyT"
-CLIENT_SECRET = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj"
-
-def get_new_access_token():
-    response = requests.post(
-        AUTH_TOKEN_URL,
-        data={
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
-            "grant_type": "refresh_token",
-            "include_policy": "true",
-            "refresh_token": os.getenv("REFRESH_TOKEN"),
-        },
-        headers={"User-Agent": USER_AGENT},
-        timeout=30
-    )
-    
-    data = response.json()
-    os.environ["REFRESH_TOKEN"] = data["refresh_token"] # pretty sure its constant
-    return data["access_token"]
-
-def handle_oauth_error(api):
-    logging.getLogger().info("Refreshing access token")
-    access_token = get_new_access_token()
+def handle_oauth_error(api, token_switcher):
+    logging.getLogger().info(f"Refreshing access token for account {token_switcher.current_token}")
+    token_switcher.refresh_token()
+    access_token = token_switcher.get_access_token()
     api.set_auth(access_token)
 
-def get_json_illusts(api, artist_id):
+def get_json_illusts(api, artist_id, token_switcher):
     user_illusts_json = None
     while True:
         try:
@@ -132,11 +111,14 @@ def get_json_illusts(api, artist_id):
                 error_message = user_illusts_json["error"]["message"]
                 if "invalid_grant" in error_message:
                     logging.getLogger().info("OAuth error detected; refreshing access token")
-                    handle_oauth_error(api)
+                    handle_oauth_error(api, token_switcher)
                     continue
                 if "Rate Limit" in error_message:
                     #logging.getLogger().info("We got rate limited; trying again in 5 seconds...")
-                    time.sleep(5)
+                    token_switcher.switch_token()
+                    token_switcher.refresh_token()
+                    logging.getLogger().info(f"Switch to account {token_switcher.current_token}")
+                    api.set_token(token_switcher.get_access_token())
                     continue
                 logging.getLogger().error("Unknown error. Please handle it properly. %s", user_illusts_json)
                 user_illusts_json = api.user_illusts(artist_id)
@@ -148,14 +130,14 @@ def get_json_illusts(api, artist_id):
                 continue
     return user_illusts_json
 
-def illust_worker(api, seen, artist_queue, config):
+def illust_worker(api, seen, artist_queue, config, token_switcher):
     while True:
         try:
             artist_id = artist_queue.get()
             if artist_id is None:
                 break
 
-            user_illusts_json = get_json_illusts(api, artist_id)
+            user_illusts_json = get_json_illusts(api, artist_id, token_switcher)
             if not user_illusts_json:
                 continue
 
@@ -198,13 +180,13 @@ def illust_worker(api, seen, artist_queue, config):
         finally:
             artist_queue.task_done()
 
-def check_illustrations(check_interval, config, api, seen):
+def check_illustrations(check_interval, config, api, seen, token_switcher):
     artist_queue = queue.Queue()
 
     num_threads = config.get("num_threads", 3)
     threads = []
     for _ in range(num_threads):
-        thread = threading.Thread(target=illust_worker, args=(api, seen, artist_queue, config), daemon=True)
+        thread = threading.Thread(target=illust_worker, args=(api, seen, artist_queue, config, token_switcher), daemon=True)
         thread.start()
         threads.append(thread)
 
@@ -234,10 +216,12 @@ def main():
         except ImportError:
             logging.getLogger().warn("winotify isn't installed. System notifications will not be shown")
 
-    api = AppPixivAPI()
-    api.set_auth(get_new_access_token())
+    token_switcher = TokenSwitcher(config)
 
-    threading.Thread(target=check_illustrations, args=(check_interval, config, api, seen), daemon=True).start()
+    api = AppPixivAPI()
+    api.set_auth(token_switcher.get_access_token())
+
+    threading.Thread(target=check_illustrations, args=(check_interval, config, api, seen, token_switcher), daemon=True).start()
     
     while True:
         time.sleep(1)
