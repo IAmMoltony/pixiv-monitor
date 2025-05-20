@@ -202,6 +202,8 @@ def check_illustrations(check_interval, config, api, seen, token_switcher):
 def main():
     config = settings.get_config()
     init_logging(config)
+    if not settings.check_config(config):
+        sys.exit(1)
     seen = SeenIllustrations()
 
     check_interval = config["check_interval"]
