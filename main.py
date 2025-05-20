@@ -128,6 +128,7 @@ def get_illusts(api, artist_id):
     while True:
         try:
             # get IDs
+            print("dbg: GET ILLUSTS FUNCTION BEGIN RIGHT HERE RIGHT NOW")
             illust_ids = api.user_illusts(artist_id)
             print(f"dbg: got {len(illust_ids)} ids")
 
@@ -232,7 +233,7 @@ def main():
 
     #api = AppPixivAPI()
     #api.set_auth(get_new_access_token())
-    api = PixivAjaxAPI()
+    api = PixivAjaxAPI(os.getenv("PHPSESSID"))
 
     threading.Thread(target=check_illustrations, args=(check_interval, config, api, seen), daemon=True).start()
     

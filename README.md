@@ -2,6 +2,8 @@
 
 *This is an experimental branch that replaces `pixivpy3` with the Pixiv AJAX API, to mitigate things like rate limits.*
 
+**update: using ajax eventually makes cloudflare catch up so that won't work**
+
 pixiv-monitor is a Python script for monitoring Pixiv artist galleries, so you can stay up-to-date on your favorite anime pictures.
 
 It even has RSS support. It's pretty basic, but works.
@@ -49,12 +51,12 @@ Next you'll need to configure authentication as describe below.
 
 It's best to create a separate Pixiv account if you want to use the site in the browser without hitting a rate limit.
 
-Copy `.env.example` as `.env` and set the `REFRESH_TOKEN` variable. This is your Pixiv refresh token.
+Copy `.env.example` as `.env` and set the `PHPSESSID` variable. This is your Pixiv refresh token.
 
 The `.env` file should now look like this:
 
 ```
-REFRESH_TOKEN='your-refresh-token'
+PHPSESSID='your-refresh-token'
 ```
 
 ## System notifications
