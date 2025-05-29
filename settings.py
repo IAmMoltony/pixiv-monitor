@@ -46,6 +46,14 @@ def check_config(config):
         logger.error("Config check failed: check_interval is not an integer or float value")
         return False
 
+    if "num_accounts" not in config:
+        config["num_accounts"] = 1
+
+    if not isinstance(config["num_accounts"], int):
+        print("Number of accounts must be an integer value. Halting.")
+        logger.error("Config check failed: num_accounts is not an integer value")
+        return False
+
     if "email" not in config or not config["email"]:
         return True
 
@@ -130,3 +138,6 @@ def check_config(config):
     return True
 
 # TODO aughhgughhhh its 11 30 pm and i dont wanna do the default options for the log ones and rewriting for this to work without logging........so todo do them
+# TODO also i feel like i added some config options without updating this thing
+# overall i think i need to rewrite whatever tf this is
+# deadass rn
