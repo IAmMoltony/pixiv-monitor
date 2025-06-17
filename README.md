@@ -2,7 +2,7 @@
 
 pixiv-monitor is a Python script for monitoring Pixiv artist galleries, so you can stay up-to-date on your favorite anime pictures.
 
-It even has RSS support. It's pretty basic, but works.
+It supports RSS and sending notifications using ntfy.
 
 ## Installing
 
@@ -10,6 +10,9 @@ It even has RSS support. It's pretty basic, but works.
 2. Clone the repository
 3. Install the dependencies: `pip install -r requirements.txt`
 4. Done
+
+If you're on Windows, it's recommended to run the script in a terminal that supports ANSI escape sequences,
+such as Windows Terminal.
 
 Before running the script (`main.py`), you'll need to configure it as described below.
 
