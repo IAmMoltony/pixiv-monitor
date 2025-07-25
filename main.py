@@ -37,8 +37,9 @@ class SeenIllustrations:
                 self.seen_illusts = set(jseen["illusts"])
 
     def flush(self):
-        with open("./seen.json", "w", encoding="utf8") as seen_json:
-            json.dump({"illusts": list(self.seen_illusts)}, seen_json)
+        with self.lock:
+            with open("./seen.json", "w", encoding="utf8") as seen_json:
+                json.dump({"illusts": list(self.seen_illusts)}, seen_json)
 
     def add_illust(self, iden):
         with self.lock:
@@ -67,34 +68,6 @@ def init_logging(config):
 
 def hrdatetime():
     return datetime.datetime.now().strftime("%Y-%b-%d %H:%M:%S")
-
-def send_email(subject, message_text, config):
-    if "email" in config and config["email"]:
-        smtp_config = config["smtp"]
-
-        login = smtp_config["credentials"]["login"]
-        password = smtp_config["credentials"]["password"]
-        mail_host = smtp_config["mail_host"]["address"]
-        mail_port = smtp_config["mail_host"]["port"]
-
-        sender = smtp_config["from_address"]
-        receiver = smtp_config["to_address"]
-
-        message = MIMEMultipart()
-        message["From"] = sender
-        message["To"] = receiver
-        message["Subject"] = f"pixiv-monitor alert - {subject}"
-        message.attach(MIMEText(message_text, "plain"))
-
-        try:
-            smtp = smtplib.SMTP(mail_host, mail_port)
-            smtp.starttls()
-            smtp.login(login, password)
-            smtp.sendmail(sender, receiver, message.as_string())
-        except Exception as exc:
-            logging.getLogger().error("Error sending e-mail: %s", exc)
-        finally:
-            smtp.quit()
 
 def handle_oauth_error(api, token_switcher):
     logging.getLogger().info(f"Refreshing access token for account {token_switcher.current_token}")
@@ -161,8 +134,6 @@ def illust_worker(api, seen, artist_queue, config, token_switcher):
                     if not config["notifications_off"]:
                         notify.send_notification(f"'{illust.title}' by {illust.user.name} (@{illust.user.account})", illust.pixiv_link(), illust.get_r18_tag())
                     illustlog.log_illust(illust)
-
-                    threading.Thread(target=send_email, args=(f"{illust.title} by {illust.user.name}", log_message, config), daemon=True).start()
             if "ntfy_topic" in config:
                 if num_new_illusts > 1:
                     # as to not spam ntfy's servers, we send one (1) notification with a summary of the pictures
