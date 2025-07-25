@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+# standard imports
 import json
 import threading
 import time
@@ -12,15 +13,16 @@ import sys
 import queue
 import random
 import pathlib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
+# pixiv
 from pixivpy3 import *
 from pixivpy3.utils import PixivError
 
+# third-party imports
 import requests
 import dotenv
 
+# my imports
 from tokenswitcher import TokenSwitcher
 import illustlog
 import settings
@@ -124,16 +126,17 @@ def illust_worker(api, seen, artist_queue, config, token_switcher):
                     if num_new_illusts == 1:
                         first_illust = illust
                     seen.add_illust(illust.iden)
+
                     print(f"[{hrdatetime()}] \033[0;32mFound new illustration:\033[0m\n{str(illust)}\n")
 
                     page_count_string = "" if illust.page_count == 0 else f" ({illust.page_count} pages)"
-
                     log_message = f"New illustration: pixiv #{illust.iden}{page_count_string} '{illust.title}' by {illust.user.name} (@{illust.user.account}). Tags: {illust.get_tag_string(False)}"
                     logging.getLogger().info(log_message)
 
                     if not config["notifications_off"]:
                         notify.send_notification(f"'{illust.title}' by {illust.user.name} (@{illust.user.account})", illust.pixiv_link(), illust.get_r18_tag())
                     illustlog.log_illust(illust)
+
             if "ntfy_topic" in config:
                 if num_new_illusts > 1:
                     # as to not spam ntfy's servers, we send one (1) notification with a summary of the pictures
@@ -161,9 +164,9 @@ def check_illustrations(check_interval, config, api, seen, token_switcher):
         thread.start()
         threads.append(thread)
 
-    shuffled_ids = random.sample(config["artist_ids"], len(config["artist_ids"]))
-
     while True:
+        shuffled_ids = random.sample(config["artist_ids"], len(config["artist_ids"]))
+
         for artist_id in shuffled_ids:
             artist_queue.put(artist_id)
 
