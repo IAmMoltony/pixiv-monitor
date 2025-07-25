@@ -164,13 +164,26 @@ def check_illustrations(check_interval, config, api, seen, token_switcher):
         thread.start()
         threads.append(thread)
 
+    stop_event = threading.Event()
+    
+    def progress_worker(artist_queue, max):
+        while not stop_event.is_set():
+            print(f"\033]0;pixiv-monitor: {artist_queue.qsize()}/{max} left\007", end="")
+            sys.stdout.flush()
+            time.sleep(2)
+
     while True:
         shuffled_ids = random.sample(config["artist_ids"], len(config["artist_ids"]))
 
         for artist_id in shuffled_ids:
             artist_queue.put(artist_id)
 
+        thread = threading.Thread(target=progress_worker, args=(artist_queue, artist_queue.qsize()), daemon=True)
+        thread.start()
         artist_queue.join()
+        stop_event.set()
+        thread.join()
+        stop_event.clear()
         time.sleep(check_interval)
 
 def main():
