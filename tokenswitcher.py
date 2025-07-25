@@ -1,5 +1,7 @@
 import requests
 import os
+import threading
+import time
 
 USER_AGENT = "PixivAndroidApp/5.0.234 (Android 11; Pixel 5)"
 AUTH_TOKEN_URL = "https://oauth.secure.pixiv.net/auth/token"
@@ -36,14 +38,22 @@ class TokenSwitcher:
         for i in range(self.num_accounts):
             self.tokens.append(ApiToken(os.getenv(f"ACCESS_TOKEN{i}"), os.getenv(f"REFRESH_TOKEN{i}")))
         self.current_token = 0
+        self.lock = threading.Lock()
+        self.last_switch_time = 0
+        self.cooldown = 3
 
     def get_access_token(self):
         return self.tokens[self.current_token].access_token
 
     def switch_token(self):
-        self.current_token += 1
-        if self.current_token >= self.num_accounts:
-            self.current_token = 0
+        with self.lock:
+            now = time.monotonic()
+            if now - self.last_switch_time < self.cooldown:
+                return
+            self.current_token += 1
+            if self.current_token >= self.num_accounts:
+                self.current_token = 0
+            self.last_switch_time = now
 
     def refresh_token(self):
         self.tokens[self.current_token].refresh()
