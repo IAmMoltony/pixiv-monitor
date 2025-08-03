@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 # standard imports
+import argparse
 import json
 import threading
 import time
@@ -178,13 +179,38 @@ def check_illustrations(check_interval, config, api, seen, token_switcher):
         for artist_id in shuffled_ids:
             artist_queue.put(artist_id)
 
-        thread = threading.Thread(target=progress_worker, args=(artist_queue, artist_queue.qsize()), daemon=True)
+        thread = threading.Thread(target=progress_worker, args=(artist_queue, artist_queue.qsize()))
         thread.start()
         artist_queue.join()
         stop_event.set()
         thread.join()
         stop_event.clear()
         time.sleep(check_interval)
+
+def list_artists(config, api, token_switcher):
+    artist_ids = config["artist_ids"]
+    print(f"Will list {len(artist_ids)} artists.")
+    for artist_id in artist_ids:
+        while True:
+            user_json = api.user_detail(artist_id)
+            if "error" in user_json:
+                error_message = user_json["error"]["message"]
+                if "invalid_grant" in error_message:
+                    logging.getLogger().info("OAuth error detected; refreshing access token")
+                    handle_oauth_error(api, token_switcher)
+                    continue
+                if "Rate Limit" in error_message:
+                    #logging.getLogger().info("We got rate limited; trying again in 5 seconds...")
+                    token_switcher.switch_token()
+                    token_switcher.refresh_token()
+                    #logging.getLogger().info(f"Switch to account {token_switcher.current_token}")
+                    api.set_auth(token_switcher.get_access_token())
+                    continue
+            user_id = user_json["user"]["id"]
+            user_name = user_json["user"]["name"]
+            user_account = user_json["user"]["account"]
+            print(f"{user_name} | ID: {user_id} | @{user_account}")
+            break
 
 def main():
     config = settings.get_config()
@@ -209,6 +235,14 @@ def main():
 
     api = AppPixivAPI()
     api.set_auth(token_switcher.get_access_token())
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--list-artists", action="store_true", help="List artists and exit.")
+    args = parser.parse_args()
+    
+    if args.list_artists:
+        list_artists(config, api, token_switcher)
+        sys.exit(0)
 
     threading.Thread(target=check_illustrations, args=(check_interval, config, api, seen, token_switcher), daemon=True).start()
     
