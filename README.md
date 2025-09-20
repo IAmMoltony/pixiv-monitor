@@ -53,13 +53,15 @@ For example, for `["py", "some_command.py"]`, it will run: `py some_command.py 1
 
 It's best to create a separate Pixiv account if you want to use the site in the browser without hitting a rate limit.
 
-Copy `.env.example` as `.env` and set the `REFRESH_TOKEN` variable. This is your Pixiv refresh token.
+Copy `.env.example` as `.env` and set the `REFRESH_TOKEN0` variable. This is your Pixiv refresh token.
 
 The `.env` file should now look like this:
 
 ```
-REFRESH_TOKEN='your-refresh-token'
+REFRESH_TOKEN0='your-refresh-token'
 ```
+
+You can also add multiple accounts by adding `REFRESH_TOKEN1`, `REFRESH_TOKEN2` and so on.
 
 ## System notifications
 
