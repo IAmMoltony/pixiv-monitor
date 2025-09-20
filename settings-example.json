@@ -24,5 +24,7 @@
             "login": "fromaddr@example.com",
             "password": "1234"
         }
-    }
+    },
+	"hooks": [
+	]
 }

@@ -29,6 +29,7 @@ import illustlog
 import settings
 import notify
 from pixivmodel import PixivIllustration
+from hook import Hook
 
 class SeenIllustrations:
     def __init__(self):
@@ -106,7 +107,7 @@ def get_json_illusts(api, artist_id, token_switcher):
                 continue
     return user_illusts_json
 
-def illust_worker(api, seen, artist_queue, config, token_switcher):
+def illust_worker(api, seen, artist_queue, config, token_switcher, hooks):
     while True:
         try:
             artist_id = artist_queue.get()
@@ -133,6 +134,10 @@ def illust_worker(api, seen, artist_queue, config, token_switcher):
                     page_count_string = "" if illust.page_count == 0 else f" ({illust.page_count} pages)"
                     log_message = f"New illustration: pixiv #{illust.iden}{page_count_string} '{illust.title}' by {illust.user.name} (@{illust.user.account}). Tags: {illust.get_tag_string(False)}"
                     logging.getLogger().info(log_message)
+                    
+                    for hook in hooks:
+                        logging.getLogger().info("Running hook %s", hook)
+                        hook.run(illust)
 
                     if not config["notifications_off"]:
                         notify.send_notification(f"'{illust.title}' by {illust.user.name} (@{illust.user.account})", illust.pixiv_link(), illust.get_r18_tag())
@@ -155,13 +160,13 @@ def illust_worker(api, seen, artist_queue, config, token_switcher):
         finally:
             artist_queue.task_done()
 
-def check_illustrations(check_interval, config, api, seen, token_switcher):
+def check_illustrations(check_interval, config, api, seen, token_switcher, hooks):
     artist_queue = queue.Queue()
 
     num_threads = config.get("num_threads", 3)
     threads = []
     for _ in range(num_threads):
-        thread = threading.Thread(target=illust_worker, args=(api, seen, artist_queue, config, token_switcher), daemon=True)
+        thread = threading.Thread(target=illust_worker, args=(api, seen, artist_queue, config, token_switcher, hooks), daemon=True)
         thread.start()
         threads.append(thread)
 
@@ -212,11 +217,21 @@ def list_artists(config, api, token_switcher):
             print(f"{user_name} | ID: {user_id} | @{user_account}")
             break
 
+def load_hooks(config):
+    if "hooks" not in config:
+        return []
+    
+    hooks = []
+    for chook in config["hooks"]:
+        hooks.append(Hook(chook))
+    return hooks
+
 def main():
     config = settings.get_config()
     init_logging(config)
     if not settings.check_config(config):
         sys.exit(1)
+    hooks = load_hooks(config)
     seen = SeenIllustrations()
 
     check_interval = config["check_interval"]
@@ -244,7 +259,7 @@ def main():
         list_artists(config, api, token_switcher)
         sys.exit(0)
 
-    threading.Thread(target=check_illustrations, args=(check_interval, config, api, seen, token_switcher), daemon=True).start()
+    threading.Thread(target=check_illustrations, args=(check_interval, config, api, seen, token_switcher, hooks), daemon=True).start()
     
     while True:
         time.sleep(1)

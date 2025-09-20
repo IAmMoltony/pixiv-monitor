@@ -35,6 +35,20 @@ First copy `settings-example.json` as `settings.json`. In the `settings.json` fi
 1. `max_size`: Maximum size of one log file in MiB.
 1. `directory`: What directory to keep log files in.
 
+### Hooks
+
+pixiv-monitor can run one or more commands when it finds a new illustration. They can be listed in the `settings.json` file like so:
+
+```json
+"hooks": [
+	["py", "some_command.py"],
+	["./hook.sh"]
+]
+```
+Each hook is run with the following arguments: `illustration ID` `title` `caption` `tags` `artist ID` `artist name` `artist stacc`
+
+For example, for `["py", "some_command.py"]`, it will run: `py some_command.py 134882136 "ダイワスカーレット" "ウマ！" "アナログ / traditional, Traditional, SD, デフォルメ / chibi, 女の子 / girl, ウマ娘 / Umamusume, ウマ娘プリティーダービー / Uma Musume Pretty Derby, ダイワスカーレット(ウマ娘) / Daiwa Scarlet (UMPD)" 118871128 "moltony" "moltony2"`
+
 ## Authentication
 
 It's best to create a separate Pixiv account if you want to use the site in the browser without hitting a rate limit.
