@@ -31,6 +31,8 @@ import notify
 from pixivmodel import PixivIllustration
 from hook import Hook
 from seen import SeenIllustrations
+import utility
+from monitor import Monitor
 
 def init_logging(config, debug_log):
     log_config = config.get("log", settings.DEFAULT_LOG_CONFIG)
@@ -73,129 +75,6 @@ def init_logging(config, debug_log):
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("requests").setLevel(logging.WARNING)
 
-def hrdatetime():
-    return datetime.datetime.now().strftime("%Y-%b-%d %H:%M:%S")
-
-def handle_oauth_error(api, token_switcher):
-    logging.getLogger().debug(f"Refreshing access token for account {token_switcher.current_token}")
-    token_switcher.refresh_token()
-    access_token = token_switcher.get_access_token()
-    api.set_auth(access_token)
-
-def get_json_illusts(api, artist_id, token_switcher):
-    user_illusts_json = None
-    while True:
-        try:
-            user_illusts_json = api.user_illusts(artist_id)
-            if "error" in user_illusts_json:
-                error_message = user_illusts_json["error"]["message"]
-                if "invalid_grant" in error_message:
-                    logging.getLogger().debug("OAuth error detected; refreshing access token")
-                    handle_oauth_error(api, token_switcher)
-                    continue
-                if "Rate Limit" in error_message:
-                    #logging.getLogger().info("We got rate limited; trying again in 5 seconds...")
-                    token_switcher.switch_token()
-                    token_switcher.refresh_token()
-                    #logging.getLogger().info(f"Switch to account {token_switcher.current_token}")
-                    api.set_auth(token_switcher.get_access_token())
-                    continue
-                logging.getLogger().error("Unknown error. Please handle it properly. %s", user_illusts_json)
-                user_illusts_json = api.user_illusts(artist_id)
-            break
-        except Exception as e:
-            if not isinstance(e, KeyboardInterrupt) and not isinstance(e, SystemExit):
-                logging.getLogger().error("Unhandled exception while trying to fetch illustrations: %s. Retrying in 5 seconds.", e)
-                time.sleep(5)
-                continue
-    return user_illusts_json
-
-def illust_worker(api, seen, artist_queue, config, token_switcher, hooks):
-    while True:
-        try:
-            artist_id = artist_queue.get()
-            if artist_id is None:
-                break
-
-            user_illusts_json = get_json_illusts(api, artist_id, token_switcher)
-            if not user_illusts_json:
-                continue
-
-            illusts = user_illusts_json["illusts"]
-            num_new_illusts = 0
-            first_illust = None
-            for illust_json in illusts:
-                illust = PixivIllustration.from_json(illust_json)
-                if not seen.query_illust(illust.iden):
-                    num_new_illusts += 1
-                    if num_new_illusts == 1:
-                        first_illust = illust
-                    seen.add_illust(illust.iden)
-
-                    print(f"[{hrdatetime()}] \033[0;32mFound new illustration:\033[0m\n{str(illust)}\n")
-
-                    page_count_string = "" if illust.page_count == 0 else f" ({illust.page_count} pages)"
-                    log_message = f"New illustration: pixiv #{illust.iden}{page_count_string} '{illust.title}' by {illust.user.name} (@{illust.user.account}). Tags: {illust.get_tag_string(False)}"
-                    logging.getLogger().info(log_message)
-
-                    # Run hooks
-                    for hook in hooks:
-                        logging.getLogger().info("Running hook %s", hook)
-                        hook.run(illust)
-
-                    if not config["notifications_off"]:
-                        notify.send_notification(f"'{illust.title}' by {illust.user.name} (@{illust.user.account})", illust.pixiv_link(), illust.get_r18_tag())
-                    illustlog.log_illust(illust)
-
-            if "ntfy_topic" in config:
-                if num_new_illusts > 1:
-                    # as to not spam ntfy's servers, we send one (1) notification with a summary of the pictures
-                    # link to the pixiv url instead of the individual pictures
-                    notify.send_ntfy(config["ntfy_topic"], f"{num_new_illusts} new illustrations from {illust.user.name}", illust.user.pixiv_link())
-                elif num_new_illusts > 0:
-                    # just like usual
-                    notify.send_ntfy(config["ntfy_topic"], f"'{first_illust.title}' by {first_illust.user.name}", first_illust.pixiv_link(), first_illust.get_r18_tag())
-
-            seen.flush()
-        except Exception as e:
-            if "crash_on_exception" in config and config["crash_on_exception"]:
-                raise
-            logging.getLogger().error("Error in worker thread: %s", e)
-        finally:
-            artist_queue.task_done()
-
-def check_illustrations(check_interval, config, api, seen, token_switcher, hooks):
-    artist_queue = queue.Queue()
-
-    num_threads = config.get("num_threads", 3)
-    threads = []
-    for _ in range(num_threads):
-        thread = threading.Thread(target=illust_worker, args=(api, seen, artist_queue, config, token_switcher, hooks), daemon=True)
-        thread.start()
-        threads.append(thread)
-
-    stop_event = threading.Event()
-    
-    def progress_worker(artist_queue, max):
-        while not stop_event.is_set():
-            print(f"\033]0;pixiv-monitor: {artist_queue.qsize()}/{max} left\007", end="")
-            sys.stdout.flush()
-            time.sleep(2)
-
-    while True:
-        shuffled_ids = random.sample(config["artist_ids"], len(config["artist_ids"]))
-
-        for artist_id in shuffled_ids:
-            artist_queue.put(artist_id)
-
-        thread = threading.Thread(target=progress_worker, args=(artist_queue, artist_queue.qsize()))
-        thread.start()
-        artist_queue.join()
-        stop_event.set()
-        thread.join()
-        stop_event.clear()
-        time.sleep(check_interval)
-
 def list_artists(config, api, token_switcher):
     artist_ids = config["artist_ids"]
     print(f"Will list {len(artist_ids)} artists.")
@@ -205,8 +84,9 @@ def list_artists(config, api, token_switcher):
             if "error" in user_json:
                 error_message = user_json["error"]["message"]
                 if "invalid_grant" in error_message:
+                    # TODO create some sort of function thing for this oauth handler thing
                     logging.getLogger().debug("OAuth error detected; refreshing access token")
-                    handle_oauth_error(api, token_switcher)
+                    utility.handle_oauth_error(api, token_switcher)
                     continue
                 if "Rate Limit" in error_message:
                     #logging.getLogger().info("We got rate limited; trying again in 5 seconds...")
@@ -264,7 +144,7 @@ def main():
         list_artists(config, api, token_switcher)
         sys.exit(0)
 
-    threading.Thread(target=check_illustrations, args=(check_interval, config, api, seen, token_switcher, hooks), daemon=True).start()
+    Monitor(check_interval, config["artist_ids"], config, api, seen, token_switcher, hooks).run()
     
     while True:
         time.sleep(1)
