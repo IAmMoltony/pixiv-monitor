@@ -16,23 +16,7 @@ def get_json_illusts(api, artist_id, token_switcher):
     user_illusts_json = None
     while True:
         try:
-            user_illusts_json = api.user_illusts(artist_id)
-            if "error" in user_illusts_json:
-                error_message = user_illusts_json["error"]["message"]
-                if "invalid_grant" in error_message:
-                    logging.getLogger().debug("OAuth error detected; refreshing access token")
-                    utility.handle_oauth_error(api, token_switcher)
-                    continue
-                if "Rate Limit" in error_message:
-                    #logging.getLogger().info("We got rate limited; trying again in 5 seconds...")
-                    token_switcher.switch_token()
-                    token_switcher.refresh_token()
-                    #logging.getLogger().info(f"Switch to account {token_switcher.current_token}")
-                    api.set_auth(token_switcher.get_access_token())
-                    continue
-                logging.getLogger().error("Unknown error. Please handle it properly. %s", user_illusts_json)
-                user_illusts_json = api.user_illusts(artist_id)
-            break
+            user_illusts_json = utility.api_wrapper(api, token_switcher, api.user_illusts, artist_id)
         except Exception as e:
             if not isinstance(e, KeyboardInterrupt) and not isinstance(e, SystemExit):
                 logging.getLogger().error("Unhandled exception while trying to fetch illustrations: %s. Retrying in 5 seconds.", e)
@@ -51,6 +35,7 @@ class Monitor:
         self.hooks = hooks
 
     def run(self):
+        logging.getLogger().debug("Starting monitor: check interval=")
         threading.Thread(target=self.loop).start()
 
     def loop(self):

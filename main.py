@@ -79,27 +79,11 @@ def list_artists(config, api, token_switcher):
     artist_ids = config["artist_ids"]
     print(f"Will list {len(artist_ids)} artists.")
     for artist_id in artist_ids:
-        while True:
-            user_json = api.user_detail(artist_id)
-            if "error" in user_json:
-                error_message = user_json["error"]["message"]
-                if "invalid_grant" in error_message:
-                    # TODO create some sort of function thing for this oauth handler thing
-                    logging.getLogger().debug("OAuth error detected; refreshing access token")
-                    utility.handle_oauth_error(api, token_switcher)
-                    continue
-                if "Rate Limit" in error_message:
-                    #logging.getLogger().info("We got rate limited; trying again in 5 seconds...")
-                    token_switcher.switch_token()
-                    token_switcher.refresh_token()
-                    #logging.getLogger().info(f"Switch to account {token_switcher.current_token}")
-                    api.set_auth(token_switcher.get_access_token())
-                    continue
-            user_id = user_json["user"]["id"]
-            user_name = user_json["user"]["name"]
-            user_account = user_json["user"]["account"]
-            print(f"{user_name} | ID: {user_id} | @{user_account}")
-            break
+        user_json = utility.api_wrapper(api, token_switcher, api.user_detail, artist_id)
+        user_id = user_json["user"]["id"]
+        user_name = user_json["user"]["name"]
+        user_account = user_json["user"]["account"]
+        print(f"{user_name} | ID: {user_id} | @{user_account}")
 
 def load_hooks(config):
     if "hooks" not in config:
