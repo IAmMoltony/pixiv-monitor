@@ -30,27 +30,7 @@ import settings
 import notify
 from pixivmodel import PixivIllustration
 from hook import Hook
-
-class SeenIllustrations:
-    def __init__(self):
-        self.lock = threading.Lock()
-        self.seen_illusts = set()
-        if os.path.exists("./seen.json"):
-            with open("./seen.json", "r", encoding="utf8") as seen_json:
-                jseen = json.load(seen_json)
-                self.seen_illusts = set(jseen["illusts"])
-
-    def flush(self):
-        with self.lock:
-            with open("./seen.json", "w", encoding="utf8") as seen_json:
-                json.dump({"illusts": list(self.seen_illusts)}, seen_json)
-
-    def add_illust(self, iden):
-        with self.lock:
-            self.seen_illusts.add(iden)
-
-    def query_illust(self, iden):
-        return iden in self.seen_illusts
+from seen import SeenIllustrations
 
 def init_logging(config, debug_log):
     log_config = config.get("log", settings.DEFAULT_LOG_CONFIG)
