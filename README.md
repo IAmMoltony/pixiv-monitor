@@ -104,6 +104,9 @@ and yeah it only works on windows 10+ but lowkey you shouldn't be using anything
 
 ## Command-line arugments
 
+* `--list-artists` List currently configured artists
+* `--debug-log` Output debugging logs into the console
+
 ## RSS
 
 To add RSS, simply run `rssmain.py` alongside `main.py`. It will automatically create the RSS file (`pixiv.atom`), which can then either be accessed locally or served using an HTTP server.

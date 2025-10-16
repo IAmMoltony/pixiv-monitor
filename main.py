@@ -52,31 +52,40 @@ class SeenIllustrations:
     def query_illust(self, iden):
         return iden in self.seen_illusts
 
-def init_logging(config):
+def init_logging(config, debug_log):
     log_config = config.get("log", settings.DEFAULT_LOG_CONFIG)
     pathlib.Path(log_config["directory"]).mkdir(parents=True, exist_ok=True)
 
-    string_level = config["log"].get("level", "info")
+    string_level = log_config.get("level", "info")
     log_level = logging.INFO
-    match string_level:
-        case "debug":
-            log_level = logging.DEBUG
-        case "info":
-            log_level = logging.INFO
-        case "warning":
-            log_level = logging.WARNING
-        case "error":
-            log_level = logging.ERROR
-        case "critical":
-            log_level = logging.CRITICAL
+    if debug_log:
+        log_level = logging.DEBUG
+    else:
+        match string_level:
+            case "debug":
+                log_level = logging.DEBUG
+            case "info":
+                log_level = logging.INFO
+            case "warning":
+                log_level = logging.WARNING
+            case "error":
+                log_level = logging.ERROR
+            case "critical":
+                log_level = logging.CRITICAL
 
     logger = logging.getLogger()
-
     logger.setLevel(logging.DEBUG)
-    file_handler = logging.handlers.RotatingFileHandler(os.path.join(log_config["directory"], "pixiv-monitor.log"), encoding="utf-8", maxBytes=log_config["max_size"] * 1024 * 1024, backupCount=log_config["backup_count"])
-    file_handler.setLevel(log_level)
 
     formatter = logging.Formatter("[%(asctime)s]:%(levelname)s %(message)s")
+
+    file_handler = logging.handlers.RotatingFileHandler(os.path.join(log_config["directory"], "pixiv-monitor.log"), encoding="utf-8", maxBytes=log_config["max_size"] * 1024 * 1024, backupCount=log_config["backup_count"])
+    file_handler.setLevel(log_level)
+    if debug_log:
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setLevel(logging.DEBUG)
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
+
     file_handler.setFormatter(formatter)
     
     logger.addHandler(file_handler)
@@ -242,8 +251,13 @@ def load_hooks(config):
     return hooks
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--list-artists", action="store_true", help="List artists and exit.")
+    parser.add_argument("--debug-log", action="store_true", help="Output debugging logs in the console.")
+    args = parser.parse_args()
+
     config = settings.get_config()
-    init_logging(config)
+    init_logging(config, args.debug_log)
     if not settings.check_config(config):
         sys.exit(1)
     hooks = load_hooks(config)
@@ -265,11 +279,7 @@ def main():
 
     api = AppPixivAPI()
     api.set_auth(token_switcher.get_access_token())
-    
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--list-artists", action="store_true", help="List artists and exit.")
-    args = parser.parse_args()
-    
+
     if args.list_artists:
         list_artists(config, api, token_switcher)
         sys.exit(0)
