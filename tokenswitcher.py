@@ -32,11 +32,12 @@ class ApiToken:
         self.access_token = data["access_token"]
 
 class TokenSwitcher:
-    def __init__(self, config):
-        self.num_accounts = config["num_accounts"]
+    def __init__(self, num_accounts, load_tokens=True):
+        self.num_accounts = num_accounts
         self.tokens = []
-        for i in range(self.num_accounts):
-            self.tokens.append(ApiToken(os.getenv(f"ACCESS_TOKEN{i}"), os.getenv(f"REFRESH_TOKEN{i}")))
+        if load_tokens:
+            for i in range(self.num_accounts):
+                self.tokens.append(ApiToken(os.getenv(f"ACCESS_TOKEN{i}"), os.getenv(f"REFRESH_TOKEN{i}")))
         self.current_token = 0
         self.lock = threading.Lock()
         self.last_switch_time = 0

@@ -54,12 +54,14 @@ def load_hooks(config):
         hooks.append(Hook(chook))
     return hooks
 
-def main():
+def parse_cli_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--list-artists", action="store_true", help="List artists and exit.")
     parser.add_argument("--debug-log", action="store_true", help="Output debugging logs in the console.")
-    args = parser.parse_args()
+    return parser.parse_args()
 
+def main():
+    args = parse_cli_args()
     config = settings.get_config()
     init_logging(config, args.debug_log)
     if not settings.check_config(config):
@@ -79,7 +81,7 @@ def main():
         except ImportError:
             logging.getLogger().warn("winotify isn't installed. System notifications will not be shown")
 
-    token_switcher = TokenSwitcher(config)
+    token_switcher = TokenSwitcher(config["num_accounts"])
 
     api = AppPixivAPI()
     api.set_auth(token_switcher.get_access_token())
@@ -88,7 +90,14 @@ def main():
         list_artists(config, api, token_switcher)
         sys.exit(0)
 
-    Monitor(check_interval, config["artist_ids"], config, api, seen, token_switcher, hooks).run()
+    if "monitors" in config:
+        monitors = []
+        for monitor in config["monitors"]:
+            monitors.append(Monitor.from_json(monitor, config, api, seen, token_switcher, hooks))
+        for monitor in monitors:
+            monitor.run()
+    else:
+        Monitor(check_interval, config["artist_ids"], config, api, seen, token_switcher, hooks, config.get("num_threads", 3)).run()
     
     while True:
         time.sleep(1)

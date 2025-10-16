@@ -11,6 +11,7 @@ import utility
 import notify
 import random
 import sys
+from tokenswitcher import TokenSwitcher
 
 def get_json_illusts(api, artist_id, token_switcher):
     user_illusts_json = None
@@ -25,7 +26,7 @@ def get_json_illusts(api, artist_id, token_switcher):
     return user_illusts_json
 
 class Monitor:
-    def __init__(self, check_interval, artist_ids, config, api, seen, token_switcher, hooks):
+    def __init__(self, check_interval, artist_ids, config, api, seen, token_switcher, hooks, num_threads):
         self.check_interval = check_interval
         self.artist_ids = artist_ids
         self.config = config
@@ -33,6 +34,21 @@ class Monitor:
         self.seen = seen
         self.token_switcher = token_switcher
         self.hooks = hooks
+        self.num_threads = num_threads
+
+        logging.getLogger().debug("Created monitor with %d artist IDs, %d threads, %d tokens", len(artist_ids), num_threads, len(token_switcher.tokens))
+
+    @staticmethod
+    def from_json(json_monitor, config, api, seen, token_switcher, hooks):
+        monitor_token_switcher = None
+        if len(json_monitor.get("accounts", [])) == 0:
+            monitor_token_switcher = token_switcher
+        else:
+            accounts = json_monitor["accounts"]
+            tokens = [token_switcher.tokens[i] for i in accounts]
+            monitor_token_switcher = TokenSwitcher(len(accounts), False)
+            monitor_token_switcher.tokens = tokens
+        return Monitor(json_monitor.get("check_interval", 30), json_monitor["artist_ids"], config, api, seen, monitor_token_switcher, hooks, json_monitor.get("num_threads", 30))
 
     def run(self):
         threading.Thread(target=self.loop).start()
@@ -40,9 +56,8 @@ class Monitor:
     def loop(self):
         artist_queue = queue.Queue()
 
-        num_threads = self.config.get("num_threads", 3)
         threads = []
-        for _ in range(num_threads):
+        for _ in range(self.num_threads):
             thread = threading.Thread(target=self.illust_worker, args=(artist_queue,), daemon=True)
             thread.start()
             threads.append(thread)

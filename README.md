@@ -23,6 +23,7 @@ Before using pixiv-monitor, you have to configure it.
 First copy `settings-example.json` as `settings.json`. In the `settings.json` file, you'll need to set a few options:
 
 1. `artist_ids`: A list of IDs of the artists whose galleries you want to monitor.
+   * You can also set up multiple monitors for groups of artists. See "Multiple monitors" section below.
 1. `check_interval`: How often to check, in seconds.
 1. `notifications_off`: Enable this option to disable system notifications.
 1. `num_threads`: Number of threads to use to check for artists. More threads speeds up the process, especially if you monitor many artists. Make sure you don't set it too high **or the script (and possibly your system) might break.**
@@ -35,6 +36,14 @@ First copy `settings-example.json` as `settings.json`. In the `settings.json` fi
 1. `max_size`: Maximum size of one log file in MiB.
 1. `directory`: What directory to keep log files in.
 1. `level`: Minimum log level. `debug` / `info` / `warning` / `error` / `critical`
+
+### Multiple monitors
+
+The `settings-example.json` file demonstrates an example of using multiple monitors. You may add as many monitors as you need,
+with their own artist ID list, among other settings.
+
+In particular, you can set one or multiple accounts per monitor. For example, one monitor can have two accounts, while the
+other can have only one. The indexes correspond to the `.env` file. If not set, it'll switch using all configured accounts.
 
 ### Hooks
 

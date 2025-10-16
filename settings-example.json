@@ -1,18 +1,23 @@
 {
-    "artist_ids": [
-        123,
-        321,
-        1234
+    "monitors": [
+        {
+            "artist_ids": [
+                123,
+                321,
+                1234
+            ],
+            "check_interval": 20,
+            "num_threads": 3,
+            "accounts": [0, 1]
+        }
     ],
-    "check_interval": 30,
     "notifications_off": false,
-    "num_threads": 3,
-	"log": {
-		"backup_count": 5,
-		"max_size": 10,
-		"directory": "log",
-                "level": "info"
-	},
+    "log": {
+	"backup_count": 5,
+	"max_size": 10,
+	"directory": "log",
+        "level": "info"
+    },
     "email": false,
     "smtp": {
         "mail_host": {

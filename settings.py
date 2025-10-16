@@ -26,7 +26,7 @@ def save_config(config):
 def check_config(config):
     logger = logging.getLogger()
 
-    if "artist_ids" not in config or len(config["artist_ids"]) == 0:
+    if ("artist_ids" not in config or len(config["artist_ids"]) == 0) and "monitors" not in config:
         print("No artist IDs specified. Halting.")
         logger.error("Config check failed: artist_ids not specified or empty")
         return False
