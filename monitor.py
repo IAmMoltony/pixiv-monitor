@@ -35,7 +35,6 @@ class Monitor:
         self.hooks = hooks
 
     def run(self):
-        logging.getLogger().debug("Starting monitor: check interval=")
         threading.Thread(target=self.loop).start()
 
     def loop(self):
