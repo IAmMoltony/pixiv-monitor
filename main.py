@@ -88,7 +88,7 @@ def hrdatetime():
     return datetime.datetime.now().strftime("%Y-%b-%d %H:%M:%S")
 
 def handle_oauth_error(api, token_switcher):
-    logging.getLogger().info(f"Refreshing access token for account {token_switcher.current_token}")
+    logging.getLogger().debug(f"Refreshing access token for account {token_switcher.current_token}")
     token_switcher.refresh_token()
     access_token = token_switcher.get_access_token()
     api.set_auth(access_token)
@@ -101,7 +101,7 @@ def get_json_illusts(api, artist_id, token_switcher):
             if "error" in user_illusts_json:
                 error_message = user_illusts_json["error"]["message"]
                 if "invalid_grant" in error_message:
-                    logging.getLogger().info("OAuth error detected; refreshing access token")
+                    logging.getLogger().debug("OAuth error detected; refreshing access token")
                     handle_oauth_error(api, token_switcher)
                     continue
                 if "Rate Limit" in error_message:
@@ -216,7 +216,7 @@ def list_artists(config, api, token_switcher):
             if "error" in user_json:
                 error_message = user_json["error"]["message"]
                 if "invalid_grant" in error_message:
-                    logging.getLogger().info("OAuth error detected; refreshing access token")
+                    logging.getLogger().debug("OAuth error detected; refreshing access token")
                     handle_oauth_error(api, token_switcher)
                     continue
                 if "Rate Limit" in error_message:
