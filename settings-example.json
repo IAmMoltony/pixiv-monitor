@@ -10,7 +10,8 @@
 	"log": {
 		"backup_count": 5,
 		"max_size": 10,
-		"directory": "log"
+		"directory": "log",
+                "level": "info"
 	},
     "email": false,
     "smtp": {

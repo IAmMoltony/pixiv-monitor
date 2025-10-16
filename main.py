@@ -55,12 +55,26 @@ class SeenIllustrations:
 def init_logging(config):
     log_config = config.get("log", settings.DEFAULT_LOG_CONFIG)
     pathlib.Path(log_config["directory"]).mkdir(parents=True, exist_ok=True)
-    
+
+    string_level = config["log"].get("level", "info")
+    log_level = logging.INFO
+    match string_level:
+        case "debug":
+            log_level = logging.DEBUG
+        case "info":
+            log_level = logging.INFO
+        case "warning":
+            log_level = logging.WARNING
+        case "error":
+            log_level = logging.ERROR
+        case "critical":
+            log_level = logging.CRITICAL
+
     logger = logging.getLogger()
 
     logger.setLevel(logging.DEBUG)
     file_handler = logging.handlers.RotatingFileHandler(os.path.join(log_config["directory"], "pixiv-monitor.log"), encoding="utf-8", maxBytes=log_config["max_size"] * 1024 * 1024, backupCount=log_config["backup_count"])
-    file_handler.setLevel(logging.DEBUG)
+    file_handler.setLevel(log_level)
 
     formatter = logging.Formatter("[%(asctime)s]:%(levelname)s %(message)s")
     file_handler.setFormatter(formatter)

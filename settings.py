@@ -3,10 +3,13 @@ import logging
 import os
 import sys
 
+# TODO Rewrite this
+
 DEFAULT_LOG_CONFIG = {
     "backup_count": 5,
     "max_size": 10,
-    "directory": "log"
+    "directory": "log",
+    "level": "info"
 }
 
 def get_config():
@@ -58,8 +61,3 @@ def check_config(config):
         config["log"] = DEFAULT_LOG_CONFIG
 
     return True
-
-# TODO aughhgughhhh its 11 30 pm and i dont wanna do the default options for the log ones and rewriting for this to work without logging........so todo do them
-# TODO also i feel like i added some config options without updating this thing
-# overall i think i need to rewrite whatever tf this is
-# deadass rn

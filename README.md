@@ -34,6 +34,7 @@ First copy `settings-example.json` as `settings.json`. In the `settings.json` fi
 1. `backup_count`: How many log files to keep.
 1. `max_size`: Maximum size of one log file in MiB.
 1. `directory`: What directory to keep log files in.
+1. `level`: Minimum log level. `debug` / `info` / `warning` / `error` / `critical`
 
 ### Hooks
 
@@ -47,9 +48,13 @@ pixiv-monitor can run one or more commands when it finds a new illustration. The
 ```
 Each hook is run with the following arguments: `illustration ID` `title` `caption` `tags` `artist ID` `artist name` `artist stacc`
 
-For example, for `["py", "some_command.py"]`, it will run: `py some_command.py 134882136 "ダイワスカーレット" "ウマ！" "アナログ / traditional, Traditional, SD, デフォルメ / chibi, 女の子 / girl, ウマ娘 / Umamusume, ウマ娘プリティーダービー / Uma Musume Pretty Derby, ダイワスカーレット(ウマ娘) / Daiwa Scarlet (UMPD)" 118871128 "moltony" "moltony2"`
+For example, for `["py", "some_command.py"]`, it will run something like:
 
-## Authentication
+```bash
+py some_command.py 134882136 "ダイワスカーレット" "ウマ！" "アナログ / traditional, Traditional, SD, デフォルメ / chibi, 女の子 / girl, ウマ娘 / Umamusume, ウマ娘プリティーダービー / Uma Musume Pretty Derby, ダイワスカーレット(ウマ娘) / Daiwa Scarlet (UMPD)" 118871128 "moltony" "moltony2"
+```
+
+### Authentication
 
 It's best to create a separate Pixiv account if you want to use the site in the browser without hitting a rate limit.
 
@@ -63,11 +68,11 @@ REFRESH_TOKEN0='your-refresh-token'
 
 You can also add multiple accounts by adding `REFRESH_TOKEN1`, `REFRESH_TOKEN2` and so on.
 
-## System notifications
+### System notifications
 
 To get system notifications to work, you'll need to install some stuff depending on your OS.
 
-### Linux
+#### Linux
 
 You'll need to install the python dbus package. Commands for the most common distros:
 
@@ -85,7 +90,7 @@ If nothing works, you can try using the pip package:
 pip install dbus-python
 ```
 
-### Windows
+#### Windows
 
 Install `winotify`:
 
@@ -96,6 +101,8 @@ pip install winotify
 notifications will work now
 
 and yeah it only works on windows 10+ but lowkey you shouldn't be using anything older if ur on windows
+
+## Command-line arugments
 
 ## RSS
 
