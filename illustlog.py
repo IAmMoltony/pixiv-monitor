@@ -6,10 +6,11 @@ from pixivmodel import PixivIllustration
 LOCK = threading.Lock()
 
 def get_illust_log():
-    if not os.path.exists("./illustlog.json"):
-        return {"illusts": []}
-    with open("./illustlog.json", encoding="utf-8") as illustlog_json:
-        return json.load(illustlog_json)
+    with LOCK:
+        if not os.path.exists("./illustlog.json"):
+            return {"illusts": []}
+        with open("./illustlog.json", encoding="utf-8") as illustlog_json:
+            return json.load(illustlog_json)
 
 def save_illust_log(illust_log):
     with LOCK:
