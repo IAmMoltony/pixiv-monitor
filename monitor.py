@@ -76,11 +76,11 @@ class Monitor:
             for artist_id in shuffled_ids:
                 artist_queue.put(artist_id)
 
-            #thread = threading.Thread(target=progress_worker, args=(artist_queue, artist_queue.qsize()))
-            #thread.start()
+            thread = threading.Thread(target=progress_worker, args=(artist_queue, artist_queue.qsize()))
+            thread.start()
             artist_queue.join()
             stop_event.set()
-            #thread.join()
+            thread.join()
             stop_event.clear()
             time.sleep(self.check_interval)
 
@@ -100,7 +100,6 @@ class Monitor:
                 first_illust = None
                 for illust_json in illusts:
                     illust = PixivIllustration.from_json(illust_json)
-                    logging.getLogger().debug(illust)
                     if not self.seen.query_illust(illust.iden):
                         num_new_illusts += 1
                         if num_new_illusts == 1:
