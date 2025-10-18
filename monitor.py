@@ -63,6 +63,7 @@ class Monitor:
 
         stop_event = threading.Event()
         
+        # TODO this would not work with multiple monitors
         def progress_worker(artist_queue, max):
             while not stop_event.is_set():
                 print(f"\033]0;pixiv-monitor: {artist_queue.qsize()}/{max} left\007", end="")
