@@ -17,13 +17,12 @@ def get_json_illusts(api, artist_id, token_switcher):
     user_illusts_json = None
     while True:
         try:
-            user_illusts_json = utility.api_wrapper(api, token_switcher, api.user_illusts, artist_id)
+            return utility.api_wrapper(api, token_switcher, api.user_illusts, artist_id)
         except Exception as e:
             if not isinstance(e, KeyboardInterrupt) and not isinstance(e, SystemExit):
                 logging.getLogger().error("Unhandled exception while trying to fetch illustrations: %s. Retrying in 5 seconds.", e)
                 time.sleep(5)
                 continue
-    return user_illusts_json
 
 class Monitor:
     def __init__(self, check_interval, artist_ids, config, api, seen, token_switcher, hooks, num_threads):
@@ -51,7 +50,7 @@ class Monitor:
         return Monitor(json_monitor.get("check_interval", 30), json_monitor["artist_ids"], config, api, seen, monitor_token_switcher, hooks, json_monitor.get("num_threads", 30))
 
     def run(self):
-        threading.Thread(target=self.loop).start()
+        threading.Thread(target=self.loop, daemon=True).start()
 
     def loop(self):
         artist_queue = queue.Queue()
@@ -76,11 +75,11 @@ class Monitor:
             for artist_id in shuffled_ids:
                 artist_queue.put(artist_id)
 
-            thread = threading.Thread(target=progress_worker, args=(artist_queue, artist_queue.qsize()))
-            thread.start()
+            #thread = threading.Thread(target=progress_worker, args=(artist_queue, artist_queue.qsize()))
+            #thread.start()
             artist_queue.join()
             stop_event.set()
-            thread.join()
+            #thread.join()
             stop_event.clear()
             time.sleep(self.check_interval)
 
@@ -100,6 +99,7 @@ class Monitor:
                 first_illust = None
                 for illust_json in illusts:
                     illust = PixivIllustration.from_json(illust_json)
+                    logging.getLogger().debug(illust)
                     if not self.seen.query_illust(illust.iden):
                         num_new_illusts += 1
                         if num_new_illusts == 1:
