@@ -13,8 +13,10 @@ class SeenIllustrations:
 
     def flush(self):
         with self.lock:
-            with open("./seen.json", "w", encoding="utf8") as seen_json:
+            temp_path = "./seen.json.tmp"
+            with open(temp_path, "w", encoding="utf8") as seen_json:
                 json.dump({"illusts": list(self.seen_illusts)}, seen_json)
+            os.replace(temp_path, "./seen.json")
 
     def add_illust(self, iden):
         with self.lock:
