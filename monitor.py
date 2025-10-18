@@ -51,7 +51,7 @@ class Monitor:
         return Monitor(json_monitor.get("check_interval", 30), json_monitor["artist_ids"], config, api, seen, monitor_token_switcher, hooks, json_monitor.get("num_threads", 30))
 
     def run(self):
-        threading.Thread(target=self.loop).start()
+        threading.Thread(target=self.loop, daemon=True).start()
 
     def loop(self):
         artist_queue = queue.Queue()
@@ -64,6 +64,7 @@ class Monitor:
 
         stop_event = threading.Event()
         
+        # TODO this would not work with multiple monitors
         def progress_worker(artist_queue, max):
             while not stop_event.is_set():
                 print(f"\033]0;pixiv-monitor: {artist_queue.qsize()}/{max} left\007", end="")
