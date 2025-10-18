@@ -3,10 +3,10 @@ import os
 import json
 
 class SeenIllustrations:
-    def __init__(self):
+    def __init__(self, initialize=True):
         self.lock = threading.Lock()
         self.seen_illusts = set()
-        if os.path.exists("./seen.json"):
+        if initialize and os.path.exists("./seen.json"):
             with open("./seen.json", "r", encoding="utf8") as seen_json:
                 jseen = json.load(seen_json)
                 self.seen_illusts = set(jseen["illusts"])
