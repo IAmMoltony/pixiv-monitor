@@ -30,7 +30,8 @@ def serialize_illust(illust):
             "name": illust.user.name,
             "account": illust.user.account,
         },
-        "tags": illust.get_tag_string(False)
+        "tags": illust.get_tag_string(False),
+        "is_sensitive": illust.is_sensitive
     }
 
 def log_illust(illust):

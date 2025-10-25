@@ -14,10 +14,11 @@ import sys
 from tokenswitcher import TokenSwitcher
 
 def get_json_illusts(api, artist_id, token_switcher):
-    user_illusts_json = None
     while True:
         try:
-            return utility.api_wrapper(api, token_switcher, api.user_illusts, artist_id)
+            user_illusts_json = utility.api_wrapper(api, token_switcher, api.user_illusts, artist_id)
+            #logging.getLogger().debug(user_illusts_json)
+            return user_illusts_json
         except Exception as e:
             if not isinstance(e, KeyboardInterrupt) and not isinstance(e, SystemExit):
                 logging.getLogger().error("Unhandled exception while trying to fetch illustrations: %s. Retrying in 5 seconds.", e)
